@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart | Exclusive 商城</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-poppins bg-white">
+  <!-- Header 區塊（登入後帳號下拉選單） -->
+  <header class="bg-black text-white">
+    <div class="container mx-auto flex justify-between items-center py-2 px-4">
+      <div class="text-2xl font-bold">Exclusive</div>
+      <nav class="flex items-center gap-6">
+        <ul class="flex gap-6">
+          <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline">Contact</a></li>
+          <li><a href="{{ url_for('about') }}" class="hover:underline">About</a></li>
+        </ul>
+        <!-- 帳號下拉選單 -->
+        <div class="relative ml-6">
+          <button id="accountDropdownBtn" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-100 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+            <span class="font-medium">我的帳號</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
+            <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
+            <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+            <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
+            <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
+            <li><hr class="my-1"></li>
+            <li><a href="{{ url_for('login') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+          </ul>
+        </div>
+        <script>
+          // Dropdown toggle
+          document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('accountDropdownBtn');
+            const menu = document.getElementById('accountDropdownMenu');
+            btn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              menu.classList.toggle('hidden');
+            });
+            document.addEventListener('click', function() {
+              menu.classList.add('hidden');
+            });
+          });
+        </script>
+      </nav>
+    </div>
+  </header>
+  <main class="container mx-auto px-4 py-12 min-h-[60vh]">
+    <h1 class="text-3xl font-bold mb-8">我的購物車</h1>
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-lg shadow">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700">
+            <th class="py-3 px-4 text-left">商品</th>
+            <th class="py-3 px-4 text-left">價格</th>
+            <th class="py-3 px-4 text-left">數量</th>
+            <th class="py-3 px-4 text-left">小計</th>
+            <th class="py-3 px-4 text-left">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 範例商品 1 -->
+          <tr class="border-b">
+            <td class="py-4 px-4 flex items-center gap-4">
+              <img src="https://placehold.co/80x60" alt="商品1" class="w-20 h-16 rounded"/>
+              <span class="font-medium">HAVIT HV-G92 Gamepad</span>
+            </td>
+            <td class="py-4 px-4 text-red-500 font-bold">$120</td>
+            <td class="py-4 px-4">
+              <input type="number" value="1" min="1" class="w-16 border rounded px-2 py-1 text-center" />
+            </td>
+            <td class="py-4 px-4">$120</td>
+            <td class="py-4 px-4">
+              <button class="text-red-500 hover:underline">移除</button>
+            </td>
+          </tr>
+          <!-- 範例商品 2 -->
+          <tr class="border-b">
+            <td class="py-4 px-4 flex items-center gap-4">
+              <img src="https://placehold.co/80x60" alt="商品2" class="w-20 h-16 rounded"/>
+              <span class="font-medium">AK-900 Wired Keyboard</span>
+            </td>
+            <td class="py-4 px-4 text-red-500 font-bold">$960</td>
+            <td class="py-4 px-4">
+              <input type="number" value="2" min="1" class="w-16 border rounded px-2 py-1 text-center" />
+            </td>
+            <td class="py-4 px-4">$1920</td>
+            <td class="py-4 px-4">
+              <button class="text-red-500 hover:underline">移除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 總計與操作 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mt-8 gap-8">
+      <div class="flex gap-4">
+        <input type="text" placeholder="Coupon Code" class="border rounded px-4 py-2" />
+        <button class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition">套用優惠券</button>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-6 shadow min-w-[300px]">
+        <div class="flex justify-between mb-2">
+          <span class="font-medium">小計：</span>
+          <span>$2040</span>
+        </div>
+        <div class="flex justify-between mb-2">
+          <span class="font-medium">運費：</span>
+          <span>Free</span>
+        </div>
+        <div class="flex justify-between mb-4">
+          <span class="font-bold text-lg">總計：</span>
+          <span class="text-red-500 font-bold text-lg">$2040</span>
+        </div>
+        <button class="w-full bg-red-500 text-white py-3 rounded font-medium text-lg hover:bg-red-600 transition" onclick="location.href='{{ url_for('checkout') }}'">前往結帳</button>
+      </div>
+    </div>
+  </main>
+  <footer class="bg-black text-white py-10 mt-12">
+    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <!-- 品牌與訂閱 -->
+      <div>
+        <h2 class="font-bold text-xl mb-2">Exclusive</h2>
+        <p class="mb-4">Get 10% off your first order</p>
+        <form class="flex">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+          <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
+        </form>
+      </div>
+      <!-- 支援資訊 -->
+      <div>
+        <h3 class="font-semibold mb-2">支援</h3>
+        <address class="not-italic mb-2 text-sm">111 Bijoy sarani, Dhaka,  DH 1515, Bangladesh.</address>
+        <p class="mb-1 text-sm">exclusive@gmail.com</p>
+        <p class="text-sm">+88015-88888-9999</p>
+      </div>
+      <!-- 帳號連結 -->
+      <div>
+        <h3 class="font-semibold mb-2">帳號</h3>
+        <ul>
+          <li><a href="{{ url_for('account') }}" class="hover:underline text-sm">我的帳號</a></li>
+          <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
+          <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
+          <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
+          <li><a href="#" class="hover:underline text-sm">商店</a></li>
+        </ul>
+      </div>
+      <!-- 快速連結 -->
+      <div>
+        <h3 class="font-semibold mb-2">快速連結</h3>
+        <ul>
+          <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
+          <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
+          <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
+          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-xs text-gray-400 mt-8">
+      &copy; 2024 Exclusive. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>

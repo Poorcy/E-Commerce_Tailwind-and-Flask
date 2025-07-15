@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About | Exclusive 商城</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-poppins bg-white">
+  <!-- Header 區塊 -->
+  <header class="bg-black text-white">
+    <div class="container mx-auto flex justify-between items-center py-2 px-4">
+      <div class="text-2xl font-bold">Exclusive</div>
+      <nav>
+        <ul class="flex gap-6">
+          <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline">Contact</a></li>
+          <li><a href="{{ url_for('about') }}" class="hover:underline">About</a></li>
+          <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+          <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <nav class="flex items-center gap-3 text-sm text-black/70 mb-6 container mx-auto px-4 pt-8" aria-label="breadcrumb">
+      <a href="{{ url_for('home') }}" class="hover:underline">Home</a>
+      <span>/</span>
+      <span class="text-black">About</span>
+    </nav>
+    <section class="container mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row gap-8 items-center">
+        <div class="md:w-1/2 w-full mb-8 md:mb-0">
+          <img src="https://placehold.co/837x609" alt="Our Story" class="rounded-2xl w-full h-auto shadow-lg" />
+        </div>
+        <div class="md:w-1/2 w-full flex flex-col gap-6">
+          <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-wider">Our Story</h1>
+          <p class="text-base text-gray-700 leading-relaxed">Launched in 2015, Exclusive is South Asia’s premier online shopping marketplace with an active presence in Bangladesh. Supported by a wide range of tailored marketing, data and service solutions, Exclusive has 10,500 sellers and 300 brands and serves 3 million customers across the region.</p>
+          <p class="text-base text-gray-700 leading-relaxed">Exclusive has more than 1 Million products to offer, growing at a very fast pace. Exclusive offers a diverse assortment in categories ranging from consumer electronics to fashion and more.</p>
+        </div>
+      </div>
+    </section>
+    <section class="container mx-auto px-4 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="flex flex-col items-center text-center gap-4">
+          <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
+            <div class="w-14 h-14 bg-black rounded-full"></div>
+          </div>
+          <h3 class="text-xl font-semibold">FREE AND FAST DELIVERY</h3>
+          <p class="text-sm text-gray-600">Free delivery for all orders over $140</p>
+        </div>
+        <div class="flex flex-col items-center text-center gap-4">
+          <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
+            <div class="w-14 h-14 bg-black rounded-full"></div>
+          </div>
+          <h3 class="text-xl font-semibold">24/7 CUSTOMER SERVICE</h3>
+          <p class="text-sm text-gray-600">Friendly 24/7 customer support</p>
+        </div>
+        <div class="flex flex-col items-center text-center gap-4">
+          <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
+            <div class="w-14 h-14 bg-black rounded-full"></div>
+          </div>
+          <h3 class="text-xl font-semibold">MONEY BACK GUARANTEE</h3>
+          <p class="text-sm text-gray-600">We return money within 30 days</p>
+        </div>
+      </div>
+    </section>
+    <section class="container mx-auto px-4 py-12">
+      <h2 class="text-2xl md:text-4xl font-semibold tracking-wider mb-8">Our Team</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
+          <img src="https://placehold.co/236x391" alt="Tom Cruise" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <div class="text-2xl font-medium">Tom Cruise</div>
+          <div class="text-base text-gray-600">Founder & Chairman</div>
+        </div>
+        <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
+          <img src="https://placehold.co/294x397" alt="Emma Watson" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <div class="text-2xl font-medium">Emma Watson</div>
+          <div class="text-base text-gray-600">Managing Director</div>
+        </div>
+        <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
+          <img src="https://placehold.co/326x392" alt="Will Smith" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <div class="text-2xl font-medium">Will Smith</div>
+          <div class="text-base text-gray-600">Product Designer</div>
+        </div>
+      </div>
+    </section>
+    <section class="container mx-auto px-4 py-12">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div>
+          <div class="text-3xl font-bold">10.5k</div>
+          <div class="text-base text-gray-600">Sellers active on our site</div>
+        </div>
+        <div>
+          <div class="text-3xl font-bold">33k</div>
+          <div class="text-base text-gray-600">Monthly Product Sale</div>
+        </div>
+        <div>
+          <div class="text-3xl font-bold">45.5k</div>
+          <div class="text-base text-gray-600">Customers active on our site</div>
+        </div>
+        <div>
+          <div class="text-3xl font-bold">25k</div>
+          <div class="text-base text-gray-600">Annual gross sale on our site</div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="bg-black text-white py-10 mt-12">
+    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <h2 class="font-bold text-xl mb-2">Exclusive</h2>
+        <p class="mb-4">Get 10% off your first order</p>
+        <form class="flex">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+          <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
+        </form>
+      </div>
+      <div>
+        <h3 class="font-semibold mb-2">支援</h3>
+        <address class="not-italic mb-2 text-sm">111 Bijoy sarani, Dhaka,  DH 1515, Bangladesh.</address>
+        <p class="mb-1 text-sm">exclusive@gmail.com</p>
+        <p class="text-sm">+88015-88888-9999</p>
+      </div>
+      <div>
+        <h3 class="font-semibold mb-2">帳號</h3>
+        <ul>
+          <li><a href="{{ url_for('account') }}" class="hover:underline text-sm">我的帳號</a></li>
+          <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
+          <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
+          <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
+          <li><a href="#" class="hover:underline text-sm">商店</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-semibold mb-2">快速連結</h3>
+        <ul>
+          <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
+          <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
+          <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
+          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-xs text-gray-400 mt-8">
+      &copy; 2024 Exclusive. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>
