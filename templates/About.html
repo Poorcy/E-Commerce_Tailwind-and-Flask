@@ -12,14 +12,48 @@
   <header class="bg-black text-white">
     <div class="container mx-auto flex justify-between items-center py-2 px-4">
       <div class="text-2xl font-bold">Exclusive</div>
-      <nav>
+      <nav class="flex items-center gap-6">
         <ul class="flex gap-6">
           <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
           <li><a href="{{ url_for('contact') }}" class="hover:underline">Contact</a></li>
           <li><a href="{{ url_for('about') }}" class="hover:underline">About</a></li>
-          <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
-          <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
         </ul>
+        {% if user %}
+          <!-- 帳號下拉選單 -->
+          <div class="relative ml-6">
+            <button id="accountDropdownBtn" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-100 focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+              <span class="font-medium">我的帳號</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
+              <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
+              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
+              <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
+              <li><hr class="my-1"></li>
+              <li><a href="{{ url_for('logout') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+            </ul>
+          </div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const btn = document.getElementById('accountDropdownBtn');
+              const menu = document.getElementById('accountDropdownMenu');
+              btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+              });
+              document.addEventListener('click', function() {
+                menu.classList.add('hidden');
+              });
+            });
+          </script>
+        {% else %}
+          <ul class="flex gap-6">
+            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
+          </ul>
+        {% endif %}
       </nav>
     </div>
   </header>
@@ -32,7 +66,7 @@
     <section class="container mx-auto px-4 py-8">
       <div class="flex flex-col md:flex-row gap-8 items-center">
         <div class="md:w-1/2 w-full mb-8 md:mb-0">
-          <img src="https://placehold.co/837x609" alt="Our Story" class="rounded-2xl w-full h-auto shadow-lg" />
+          <img src="/static/images/girls.png" alt="Our Story" class="rounded-2xl w-full h-auto shadow-lg" />
         </div>
         <div class="md:w-1/2 w-full flex flex-col gap-6">
           <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-wider">Our Story</h1>
@@ -45,21 +79,27 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
         <div class="flex flex-col items-center text-center gap-4">
           <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-            <div class="w-14 h-14 bg-black rounded-full"></div>
+            <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+              <img src="/static/images/icon-delivery.png" alt="配送圖示" class="w-8 h-8 object-contain" />
+            </div>
           </div>
           <h3 class="text-xl font-semibold">FREE AND FAST DELIVERY</h3>
           <p class="text-sm text-gray-600">Free delivery for all orders over $140</p>
         </div>
         <div class="flex flex-col items-center text-center gap-4">
           <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-            <div class="w-14 h-14 bg-black rounded-full"></div>
+            <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+              <img src="/static/images/Icon-Customer service.png" alt="客戶服務圖示" class="w-8 h-8 object-contain" />
+            </div>
           </div>
           <h3 class="text-xl font-semibold">24/7 CUSTOMER SERVICE</h3>
           <p class="text-sm text-gray-600">Friendly 24/7 customer support</p>
         </div>
         <div class="flex flex-col items-center text-center gap-4">
           <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-            <div class="w-14 h-14 bg-black rounded-full"></div>
+            <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+              <img src="/static/images/Icon-secure.png" alt="安全保證圖示" class="w-8 h-8 object-contain" />
+            </div>
           </div>
           <h3 class="text-xl font-semibold">MONEY BACK GUARANTEE</h3>
           <p class="text-sm text-gray-600">We return money within 30 days</p>
@@ -70,17 +110,17 @@
       <h2 class="text-2xl md:text-4xl font-semibold tracking-wider mb-8">Our Team</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
-          <img src="https://placehold.co/236x391" alt="Tom Cruise" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <img src="/static/images/Tom.png" alt="Tom Cruise" class="rounded-xl w-40 h-60 object-cover mb-2" />
           <div class="text-2xl font-medium">Tom Cruise</div>
           <div class="text-base text-gray-600">Founder & Chairman</div>
         </div>
         <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
-          <img src="https://placehold.co/294x397" alt="Emma Watson" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <img src="/static/images/Emma.png" alt="Emma Watson" class="rounded-xl w-40 h-60 object-cover mb-2" />
           <div class="text-2xl font-medium">Emma Watson</div>
           <div class="text-base text-gray-600">Managing Director</div>
         </div>
         <div class="flex flex-col items-center gap-4 bg-neutral-100 rounded-xl p-6 shadow">
-          <img src="https://placehold.co/326x392" alt="Will Smith" class="rounded-xl w-40 h-60 object-cover mb-2" />
+          <img src="/static/images/Will.png" alt="Will Smith" class="rounded-xl w-40 h-60 object-cover mb-2" />
           <div class="text-2xl font-medium">Will Smith</div>
           <div class="text-base text-gray-600">Product Designer</div>
         </div>
@@ -112,10 +152,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
       </div>
       <div>
         <h3 class="font-semibold mb-2">支援</h3>
@@ -130,16 +174,17 @@
           <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
           <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
           <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
-          <li><a href="#" class="hover:underline text-sm">商店</a></li>
+          
         </ul>
       </div>
+      <!-- 快速連結 -->
       <div>
         <h3 class="font-semibold mb-2">快速連結</h3>
         <ul>
           <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
           <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
           <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
-          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline text-sm">聯絡我們</a></li>
         </ul>
       </div>
     </div>
@@ -147,5 +192,24 @@
       &copy; 2024 Exclusive. All rights reserved.
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after3seconds
+        }
+      });
+    });
+  </script>
 </body>
 </html>

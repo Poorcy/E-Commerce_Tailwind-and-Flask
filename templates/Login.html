@@ -26,7 +26,7 @@
   <main class="container mx-auto px-4 py-12 flex flex-col md:flex-row gap-12 items-center min-h-[70vh]">
     <!-- 左側圖片 -->
     <div class="hidden md:block md:w-1/2 lg:w-2/5">
-      <img src="https://placehold.co/600x700" alt="Login Banner" class="rounded-2xl w-full h-auto object-cover shadow-xl" />
+      <img src="/static/images/trolley_and_phone.png" alt="Login Banner" class="rounded-2xl w-full h-auto object-cover shadow-xl" />
     </div>
     <!-- 右側登入表單 -->
     <section class="w-full md:w-1/2 lg:w-2/5 bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-8">
@@ -44,10 +44,7 @@
           <input id="password" name="password" type="password" required class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-400" placeholder="Password" />
         </div>
         <button type="submit" class="w-full bg-red-500 text-white py-3 rounded font-medium text-lg hover:bg-red-600 transition">Login</button>
-        <button type="button" class="w-full flex items-center justify-center gap-2 border border-gray-300 py-3 rounded hover:bg-gray-50 transition">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4285F4"/><text x="7" y="17" font-size="10" fill="#fff">G</text></svg>
-          Login with Google
-        </button>
+        
       </form>
       <div class="text-center mt-4">
         <span class="text-gray-600">Don't have an account?</span>
@@ -61,10 +58,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
       </div>
       <!-- 支援資訊 -->
       <div>
@@ -81,7 +82,7 @@
           <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
           <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
           <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
-          <li><a href="{{ url_for('checkout') }}" class="hover:underline text-sm">Checkout</a></li>
+          
         </ul>
       </div>
       <!-- 快速連結 -->
@@ -91,7 +92,7 @@
           <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
           <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
           <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
-          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline text-sm">聯絡我們</a></li>
         </ul>
       </div>
     </div>
@@ -99,5 +100,24 @@
       &copy; 2024 Exclusive. All rights reserved.
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after 3 seconds
+        }
+      });
+    });
+  </script>
 </body>
 </html>

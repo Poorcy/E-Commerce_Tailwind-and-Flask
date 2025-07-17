@@ -12,14 +12,48 @@
   <header class="bg-black text-white">
     <div class="container mx-auto flex justify-between items-center py-2 px-4">
       <div class="text-2xl font-bold">Exclusive</div>
-      <nav>
+      <nav class="flex items-center gap-6">
         <ul class="flex gap-6">
           <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
           <li><a href="{{ url_for('contact') }}" class="hover:underline">Contact</a></li>
           <li><a href="{{ url_for('about') }}" class="hover:underline">About</a></li>
-          <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
-          <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
         </ul>
+        {% if user %}
+          <!-- 帳號下拉選單 -->
+          <div class="relative ml-6">
+            <button id="accountDropdownBtn" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-100 focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+              <span class="font-medium">我的帳號</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
+              <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
+              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
+              <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
+              <li><hr class="my-1"></li>
+              <li><a href="{{ url_for('logout') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+            </ul>
+          </div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const btn = document.getElementById('accountDropdownBtn');
+              const menu = document.getElementById('accountDropdownMenu');
+              btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+              });
+              document.addEventListener('click', function() {
+                menu.classList.add('hidden');
+              });
+            });
+          </script>
+        {% else %}
+          <ul class="flex gap-6">
+            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
+          </ul>
+        {% endif %}
       </nav>
         </div>
   </header>
@@ -28,47 +62,120 @@
     <!-- Hero 區塊：分類選單＋Banner -->
     <section class="container mx-auto px-4 py-8">
       <div class="flex flex-col md:flex-row gap-8">
-        <!-- 左側分類選單 -->
-        <aside class="md:w-1/4 w-full">
-          <nav aria-label="商品分類" class="bg-white rounded-lg shadow p-4 md:sticky md:top-8">
-            <ul class="space-y-2">
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Woman’s Fashion</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Men’s Fashion</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Electronics</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Home & Lifestyle</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Medicine</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Sports & Outdoor</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Baby’s & Toys</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Groceries & Pets</a></li>
-              <li><a href="#" class="block px-4 py-2 rounded hover:bg-gray-100 font-medium text-gray-800">Health & Beauty</a></li>
-            </ul>
-          </nav>
-        </aside>
+        
         <!-- 右側 Banner -->
-        <div class="md:w-3/4 w-full">
+        <div class="md:w-4/4 w-full"> 
           <section class="relative bg-black rounded-2xl overflow-hidden flex flex-col md:flex-row items-center p-8 min-h-[320px] shadow-lg">
-            <div class="flex-1 text-white md:pr-8">
-              <div class="flex items-center gap-4 mb-2">
-                <img src="https://placehold.co/40x49" alt="icon" class="w-10 h-12 hidden md:block" />
-                <span class="text-base font-normal">iPhone 14 Series</span>
+            <!-- 輪播內容容器 -->
+            <div class="flex-1 text-white md:pr-8 relative">
+              <!-- 輪播項目 1 -->
+              <div class="banner-slide" style="display:block;">
+                <div class="flex items-center gap-4 mb-2">
+                  <img src="/static/images/applelogo.png" alt="icon" class="w-10 h-12 hidden md:block" />
+                  <span class="text-base font-normal">iPhone 14 Series</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest">Up to 10% off Voucher</h2>
+                <a href="{{ url_for('product') }}" class="inline-block bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium text-lg shadow mt-2">Shop Now</a>
               </div>
-              <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest">Up to 10% off Voucher</h2>
-              <a href="{{ url_for('product') }}" class="inline-block bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium text-lg shadow mt-2">Shop Now</a>
-              <div class="flex gap-2 mt-8">
-                <span class="w-3 h-3 bg-white opacity-50 rounded-full"></span>
-                <span class="w-3 h-3 bg-white opacity-50 rounded-full"></span>
-                <span class="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                <span class="w-3.5 h-3.5 border-2 border-white rounded-full"></span>
-                <span class="w-3 h-3 bg-white opacity-50 rounded-full"></span>
-                <span class="w-3 h-3 bg-white opacity-50 rounded-full"></span>
+              
+              <!-- 輪播項目 2 -->
+              <div class="banner-slide" style="display:none;">
+                <div class="flex items-center gap-4 mb-2">
+                  <img src="/static/images/applelogo.png" alt="icon" class="w-10 h-12 hidden md:block" />
+                  <span class="text-base font-normal">MacBook Pro</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest">New MacBook Pro 15"</h2>
+                <a href="{{ url_for('product') }}" class="inline-block bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium text-lg shadow mt-2">Shop Now</a>
+              </div>
+              
+              <!-- 輪播項目 3 -->
+              <div class="banner-slide" style="display:none;">
+                <div class="flex items-center gap-4 mb-2">
+                  <img src="/static/images/applelogo.png" alt="icon" class="w-10 h-12 hidden md:block" />
+                  <span class="text-base font-normal">iPad Air</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest">iPad Air with M2</h2>
+                <a href="{{ url_for('product') }}" class="inline-block bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium text-lg shadow mt-2">Shop Now</a>
+              </div>
+              
+              <!-- 輪播項目 4 -->
+              <div class="banner-slide" style="display:none;">
+                <div class="flex items-center gap-4 mb-2">
+                  <img src="/static/images/applelogo.png" alt="icon" class="w-10 h-12 hidden md:block" />
+                  <span class="text-base font-normal">Apple Watch</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold mb-4 tracking-widest">Apple Watch Series 9</h2>
+                <a href="{{ url_for('product') }}" class="inline-block bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium text-lg shadow mt-2">Shop Now</a>
+              </div>
+              
+              <!-- 輪播指示器 -->
+              <div class="flex gap-2 mt-8 justify-center">
+                <button class="banner-indicator w-3 h-3 bg-white opacity-50 rounded-full transition-all duration-300" data-slide="0"></button>
+                <button class="banner-indicator w-3 h-3 bg-white opacity-50 rounded-full transition-all duration-300" data-slide="1"></button>
+                <button class="banner-indicator w-3 h-3 bg-white opacity-50 rounded-full transition-all duration-300" data-slide="2"></button>
+                <button class="banner-indicator w-3 h-3 bg-white opacity-50 rounded-full transition-all duration-300" data-slide="3"></button>
               </div>
             </div>
-            <div class="flex-1 flex justify-center mt-8 md:mt-0">
-              <img src="/static/images/home_phone.png" alt="手機主視覺" class="w-full max-w-md rounded-xl shadow-xl"/>
+            
+            <!-- 輪播圖片容器 -->
+            <div class="flex-1 flex justify-center mt-8 md:mt-0 relative">
+              <!-- 輪播圖片 1 -->
+              <img src="/static/images/home_phone.png" alt="iPhone 14" class="banner-image w-full max-w-md rounded-xl shadow-xl" style="display:block;" data-slide="0"/>
+              <!-- 輪播圖片 2 -->
+              <img src="/static/images/mug1.png" alt="MacBook Pro" class="banner-image w-full max-w-md rounded-xl shadow-xl" style="display:none;" data-slide="1"/>
+              <!-- 輪播圖片 3 -->
+              <img src="/static/images/red_apple.png" alt="iPad Air" class="banner-image w-full max-w-md rounded-xl shadow-xl" style="display:none;" data-slide="2"/>
+              <!-- 輪播圖片 4 -->
+              <img src="/static/images/mug2.png" alt="Apple Watch" class="banner-image w-full max-w-md rounded-xl shadow-xl" style="display:none;" data-slide="3"/>
             </div>
           </section>
         </div>
-      </div>
+<script>
+// Banner 輪播 - 簡單切換模式
+let currentBanner = 0;
+function showBanner(idx) {
+  const slides = document.querySelectorAll('.banner-slide');
+  const images = document.querySelectorAll('.banner-image');
+  const indicators = document.querySelectorAll('.banner-indicator');
+  
+  slides.forEach((slide, i) => {
+    slide.style.display = (i === idx) ? 'block' : 'none';
+  });
+  
+  images.forEach((img, i) => {
+    img.style.display = (i === idx) ? 'block' : 'none';
+  });
+  
+  indicators.forEach((indicator, i) => {
+    if (i === idx) {
+      indicator.classList.add('bg-red-500', 'opacity-100');
+      indicator.classList.remove('opacity-50');
+    } else {
+      indicator.classList.remove('bg-red-500', 'opacity-100');
+      indicator.classList.add('opacity-50');
+    }
+  });
+}
+
+function nextBanner() {
+  currentBanner = (currentBanner + 1) % 4;
+  showBanner(currentBanner);
+}
+
+setInterval(nextBanner, 4000);
+
+document.addEventListener('DOMContentLoaded', function() {
+  showBanner(currentBanner);
+  const indicators = document.querySelectorAll('.banner-indicator');
+  indicators.forEach((el, idx) => {
+    el.addEventListener('click', () => {
+      currentBanner = idx;
+      showBanner(currentBanner);
+    });
+  });
+});
+</script>
+
     </section>
     <section class="py-12">
       <div class="container mx-auto px-4">
@@ -76,32 +183,40 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <!-- 商品卡片 1 -->
           <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <img src="https://placehold.co/300x200" alt="商品1" class="mb-4 rounded"/>
-            <h3 class="text-lg font-semibold mb-2">HAVIT HV-G92 Gamepad</h3>
+            <a href="{{ url_for('product') }}" class="block">
+              <img src="https://placehold.co/300x200" alt="商品1" class="mb-4 rounded"/>
+              <h3 class="text-lg font-semibold mb-2">HAVIT HV-G92 Gamepad</h3>
+            </a>
             <p class="text-red-500 font-bold mb-1">$120 <span class="text-gray-400 line-through text-sm">$160</span></p>
             <p class="text-sm text-gray-600 mb-4">五顆星 (88)</p>
             <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
           </article>
           <!-- 商品卡片 2 -->
           <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <img src="https://placehold.co/300x200" alt="商品2" class="mb-4 rounded"/>
-            <h3 class="text-lg font-semibold mb-2">AK-900 Wired Keyboard</h3>
+            <a href="{{ url_for('product') }}" class="block">
+              <img src="https://placehold.co/300x200" alt="商品2" class="mb-4 rounded"/>
+              <h3 class="text-lg font-semibold mb-2">AK-900 Wired Keyboard</h3>
+            </a>
             <p class="text-red-500 font-bold mb-1">$960 <span class="text-gray-400 line-through text-sm">$1160</span></p>
             <p class="text-sm text-gray-600 mb-4">四顆星 (75)</p>
             <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
           </article>
           <!-- 商品卡片 3 -->
           <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <img src="https://placehold.co/300x200" alt="商品3" class="mb-4 rounded"/>
-            <h3 class="text-lg font-semibold mb-2">IPS LCD Gaming Monitor</h3>
+            <a href="{{ url_for('product') }}" class="block">
+              <img src="https://placehold.co/300x200" alt="商品3" class="mb-4 rounded"/>
+              <h3 class="text-lg font-semibold mb-2">IPS LCD Gaming Monitor</h3>
+            </a>
             <p class="text-red-500 font-bold mb-1">$370 <span class="text-gray-400 line-through text-sm">$400</span></p>
             <p class="text-sm text-gray-600 mb-4">五顆星 (99)</p>
             <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
           </article>
           <!-- 商品卡片 4 -->
           <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <img src="https://placehold.co/300x200" alt="商品4" class="mb-4 rounded"/>
-            <h3 class="text-lg font-semibold mb-2">S-Series Comfort Chair</h3>
+            <a href="{{ url_for('product') }}" class="block">
+              <img src="https://placehold.co/300x200" alt="商品4" class="mb-4 rounded"/>
+              <h3 class="text-lg font-semibold mb-2">S-Series Comfort Chair</h3>
+            </a>
             <p class="text-red-500 font-bold mb-1">$375 <span class="text-gray-400 line-through text-sm">$400</span></p>
             <p class="text-sm text-gray-600 mb-4">五顆星 (99)</p>
             <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
@@ -109,62 +224,7 @@
     </div>
       </div>
     </section>
-    <!-- Browse By Category 區塊 -->
-    <section class="container mx-auto px-4 py-12">
-      <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="inline-block w-2 h-8 bg-red-500 rounded mr-2"></span>
-            <span class="text-red-500 text-base font-semibold">Categories</span>
-          </div>
-          <h2 class="text-2xl md:text-4xl font-semibold tracking-wider">Browse By Category</h2>
-        </div>
-        <div class="flex gap-2">
-          <button class="w-11 h-11 flex items-center justify-center bg-neutral-100 rounded-full border-none"><span class="sr-only">上一頁</span><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
-          <button class="w-11 h-11 flex items-center justify-center bg-neutral-100 rounded-full border-none"><span class="sr-only">下一頁</span><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg></button>
-        </div>
-      </header>
-      <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-        <li>
-          <article class="flex flex-col items-center justify-center bg-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full">
-              <!-- 可放icon或svg -->
-            </div>
-            <span class="text-base font-medium">Phones</span>
-          </article>
-        </li>
-        <li>
-          <article class="flex flex-col items-center justify-center bg-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full"></div>
-            <span class="text-base font-medium">Computers</span>
-          </article>
-        </li>
-        <li>
-          <article class="flex flex-col items-center justify-center bg-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full"></div>
-            <span class="text-base font-medium">SmartWatch</span>
-          </article>
-        </li>
-        <li>
-          <article class="flex flex-col items-center justify-center bg-red-500 text-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full"></div>
-            <span class="text-base font-medium">Camera</span>
-          </article>
-        </li>
-        <li>
-          <article class="flex flex-col items-center justify-center bg-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full"></div>
-            <span class="text-base font-medium">HeadPhones</span>
-          </article>
-        </li>
-        <li>
-          <article class="flex flex-col items-center justify-center bg-white rounded shadow hover:shadow-lg transition p-4 border border-black/10 hover:border-red-500">
-            <div class="mb-4 flex items-center justify-center w-14 h-14 bg-gray-50 rounded-full"></div>
-            <span class="text-base font-medium">Gaming</span>
-          </article>
-        </li>
-      </ul>
-    </section>
+    
     <!-- Best Selling Products 區塊 -->
     <section class="container mx-auto px-4 py-12">
       <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
@@ -175,15 +235,15 @@
           </div>
           <h2 class="text-2xl md:text-4xl font-semibold tracking-wider">Best Selling Products</h2>
         </div>
-        <button class="px-8 py-3 bg-red-500 text-white rounded font-medium text-base shadow hover:bg-red-600 transition flex items-center gap-2 mt-4 md:mt-0">
-          View All
-        </button>
+        
       </header>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <!-- 商品卡片 1 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <img src="https://placehold.co/140x146" alt="The north coat" class="mb-4 rounded w-full h-44 object-cover"/>
-          <h3 class="text-lg font-semibold mb-2">The north coat</h3>
+          <a href="{{ url_for('product') }}" class="block">
+            <img src="https://placehold.co/140x146" alt="The north coat" class="mb-4 rounded w-full h-44 object-cover"/>
+            <h3 class="text-lg font-semibold mb-2">The north coat</h3>
+          </a>
           <div class="flex items-center gap-3 mb-1">
             <span class="text-red-500 font-medium">$260</span>
             <span class="text-black/50 font-medium line-through">$360</span>
@@ -201,8 +261,10 @@
         </article>
         <!-- 商品卡片 2 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <img src="https://placehold.co/178x129" alt="Gucci duffle bag" class="mb-4 rounded w-full h-44 object-cover"/>
-          <h3 class="text-lg font-semibold mb-2">Gucci duffle bag</h3>
+          <a href="{{ url_for('product') }}" class="block">
+            <img src="https://placehold.co/178x129" alt="Gucci duffle bag" class="mb-4 rounded w-full h-44 object-cover"/>
+            <h3 class="text-lg font-semibold mb-2">Gucci duffle bag</h3>
+          </a>
           <div class="flex items-center gap-3 mb-1">
             <span class="text-red-500 font-medium">$960</span>
             <span class="text-black/50 font-medium line-through">$1160</span>
@@ -220,8 +282,10 @@
         </article>
         <!-- 商品卡片 3 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <img src="https://placehold.co/191x95" alt="RGB liquid CPU Cooler" class="mb-4 rounded w-full h-44 object-cover"/>
-          <h3 class="text-lg font-semibold mb-2">RGB liquid CPU Cooler</h3>
+          <a href="{{ url_for('product') }}" class="block">
+            <img src="https://placehold.co/191x95" alt="RGB liquid CPU Cooler" class="mb-4 rounded w-full h-44 object-cover"/>
+            <h3 class="text-lg font-semibold mb-2">RGB liquid CPU Cooler</h3>
+          </a>
           <div class="flex items-center gap-3 mb-1">
             <span class="text-red-500 font-medium">$160</span>
             <span class="text-black/50 font-medium line-through">$170</span>
@@ -239,8 +303,10 @@
         </article>
         <!-- 商品卡片 4 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <img src="https://placehold.co/140x176" alt="Small BookSelf" class="mb-4 rounded w-full h-44 object-cover"/>
-          <h3 class="text-lg font-semibold mb-2">Small BookSelf</h3>
+          <a href="{{ url_for('product') }}" class="block">
+            <img src="https://placehold.co/140x176" alt="Small BookSelf" class="mb-4 rounded w-full h-44 object-cover"/>
+            <h3 class="text-lg font-semibold mb-2">Small BookSelf</h3>
+          </a>
           <div class="flex items-center gap-3 mb-1">
             <span class="text-red-500 font-medium">$360</span>
           </div>
@@ -288,7 +354,7 @@
     <!-- Banner 圖片 -->
     <div class="flex-1 flex justify-center mt-8 md:mt-0 relative">
       <div class="absolute w-[300px] h-[300px] bg-zinc-300 opacity-30 rounded-full blur-2xl left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"></div>
-      <img src="https://placehold.co/568x330" alt="Music Banner" class="relative w-full max-w-md rounded-xl shadow-xl z-10"/>
+      <img src="/static/images/Flashsale.png" alt="Music Banner" class="relative w-full max-w-md rounded-xl shadow-xl z-10"/>
     </div>
   </div>
 </section>
@@ -474,9 +540,7 @@
       </div>
     </article>
   </div>
-  <div class="flex justify-center mt-8">
-    <a href="{{ url_for('product') }}" class="px-12 py-4 bg-red-500 rounded text-white font-medium text-base hover:bg-red-600 transition inline-flex items-center gap-2.5">View All Products</a>
-  </div>
+  
 </section>
 <!-- End Explore Our Products 區塊 -->
 
@@ -526,7 +590,9 @@
     <li>
       <article class="flex flex-col items-center text-center gap-4">
         <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-          <div class="w-14 h-14 bg-black rounded-full"></div>
+          <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+            <img src="/static/images/icon-delivery.png" alt="配送圖示" class="w-8 h-8 object-contain" />
+          </div>
         </div>
         <h3 class="text-xl font-semibold">FREE AND FAST DELIVERY</h3>
         <p class="text-sm text-gray-600">Free delivery for all orders over $140</p>
@@ -535,7 +601,9 @@
     <li>
       <article class="flex flex-col items-center text-center gap-4">
         <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-          <div class="w-14 h-14 bg-black rounded-full"></div>
+          <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+            <img src="/static/images/Icon-Customer service.png" alt="客戶服務圖示" class="w-8 h-8 object-contain" />
+          </div>
         </div>
         <h3 class="text-xl font-semibold">24/7 CUSTOMER SERVICE</h3>
         <p class="text-sm text-gray-600">Friendly 24/7 customer support</p>
@@ -544,7 +612,9 @@
     <li>
       <article class="flex flex-col items-center text-center gap-4">
         <div class="w-20 h-20 bg-zinc-800/30 rounded-full flex items-center justify-center mb-2">
-          <div class="w-14 h-14 bg-black rounded-full"></div>
+          <div class="w-14 h-14 bg-black rounded-full flex items-center justify-center">
+            <img src="/static/images/Icon-secure.png" alt="安全保證圖示" class="w-8 h-8 object-contain" />
+          </div>
         </div>
         <h3 class="text-xl font-semibold">MONEY BACK GUARANTEE</h3>
         <p class="text-sm text-gray-600">We return money within 30 days</p>
@@ -560,10 +630,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
         </div>
       <!-- 支援資訊 -->
       <div>
@@ -580,7 +654,6 @@
           <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
           <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
           <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
-          <li><a href="{{ url_for('account_dropdown') }}" class="hover:underline text-sm">Account Dropdown</a></li>
         </ul>
       </div>
       <!-- 快速連結 -->
@@ -620,6 +693,25 @@ window.addEventListener('DOMContentLoaded', function() {
   setInterval(updateFlashSaleCountdown, 1000);
   updateFlashSaleCountdown();
 });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after 3 seconds
+        }
+      });
+    });
   </script>
 </body>
 </html>

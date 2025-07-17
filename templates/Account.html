@@ -31,7 +31,7 @@
             <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
             <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
             <li><hr class="my-1"></li>
-            <li><a href="{{ url_for('login') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+            <li><a href="{{ url_for('logout') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
           </ul>
         </div>
         <script>
@@ -58,34 +58,54 @@
     </nav>
     <section class="bg-white rounded shadow p-8 max-w-3xl mx-auto">
       <h1 class="text-2xl font-bold text-red-500 mb-6">編輯個人資料</h1>
-      <form class="space-y-6">
+      
+      <!-- Flash 訊息顯示 -->
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="mb-6">
+            {% for message in messages %}
+              <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-2">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      
+      <form method="POST" class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="firstName" class="block text-base font-medium mb-1">名字</label>
-            <input id="firstName" name="firstName" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入名字" value="Md" />
+            <input id="firstName" name="firstName" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入名字" value="{{ user.first_name or '' }}" />
           </div>
           <div>
             <label for="lastName" class="block text-base font-medium mb-1">姓氏</label>
-            <input id="lastName" name="lastName" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入姓氏" value="Rimel" />
+            <input id="lastName" name="lastName" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入姓氏" value="{{ user.last_name or '' }}" />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="email" class="block text-base font-medium mb-1">Email</label>
-            <input id="email" name="email" type="email" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入 Email" value="rimel1111@gmail.com" />
+            <input id="email" name="email" type="email" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入 Email" value="{{ user.email }}" readonly />
+            <p class="text-sm text-gray-500 mt-1">Email 不可修改</p>
           </div>
           <div>
-            <label for="address" class="block text-base font-medium mb-1">地址</label>
-            <input id="address" name="address" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入地址" value="Kingston, 5236, United State" />
+            <label for="phone" class="block text-base font-medium mb-1">電話</label>
+            <input id="phone" name="phone" type="tel" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入電話號碼" value="{{ user.phone or '' }}" />
           </div>
         </div>
         <div>
-          <label class="block text-base font-medium mb-1">密碼變更</label>
+          <label for="address" class="block text-base font-medium mb-1">地址</label>
+          <input id="address" name="address" type="text" class="w-full rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="請輸入地址" value="{{ user.address or '' }}" />
+        </div>
+        <div>
+          <label class="block text-base font-medium mb-1">密碼變更（選填）</label>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <input type="password" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="目前密碼" />
-            <input type="password" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="新密碼" />
-            <input type="password" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="確認新密碼" />
+            <input type="password" name="currentPassword" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="目前密碼" />
+            <input type="password" name="newPassword" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="新密碼" />
+            <input type="password" name="confirmPassword" class="rounded bg-neutral-100 px-4 py-3 focus:outline-none" placeholder="確認新密碼" />
           </div>
+          <p class="text-sm text-gray-500 mt-1">如不變更密碼，請留空</p>
         </div>
         <div class="flex justify-end gap-4">
           <button type="reset" class="px-8 py-2 rounded border border-gray-300 text-black hover:bg-gray-100">取消</button>
@@ -99,10 +119,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
       </div>
       <div>
         <h3 class="font-semibold mb-2">支援</h3>
@@ -117,16 +141,17 @@
           <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
           <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
           <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
-          <li><a href="#" class="hover:underline text-sm">商店</a></li>
+          
         </ul>
       </div>
+      <!-- 快速連結 -->
       <div>
         <h3 class="font-semibold mb-2">快速連結</h3>
         <ul>
           <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
           <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
           <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
-          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline text-sm">聯絡我們</a></li>
         </ul>
       </div>
     </div>
@@ -134,5 +159,24 @@
       &copy; 2024 Exclusive. All rights reserved.
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after 3 seconds
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -33,10 +33,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
       </div>
       <!-- 支援資訊 -->
       <div>
@@ -70,5 +74,24 @@
       &copy; 2024 Exclusive. All rights reserved.
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after3seconds
+        }
+      });
+    });
+  </script>
 </body>
 </html>

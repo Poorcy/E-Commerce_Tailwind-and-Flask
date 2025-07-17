@@ -18,36 +18,42 @@
           <li><a href="{{ url_for('contact') }}" class="hover:underline">Contact</a></li>
           <li><a href="{{ url_for('about') }}" class="hover:underline">About</a></li>
         </ul>
-        <!-- 帳號下拉選單 -->
-        <div class="relative ml-6">
-          <button id="accountDropdownBtn" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-100 focus:outline-none">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
-            <span class="font-medium">我的帳號</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
-            <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-            <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
-            <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
-            <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
-            <li><hr class="my-1"></li>
-            <li><a href="{{ url_for('login') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+        {% if user %}
+          <!-- 帳號下拉選單 -->
+          <div class="relative ml-6">
+            <button id="accountDropdownBtn" class="flex items-center gap-2 px-4 py-2 bg-white text-black rounded hover:bg-gray-100 focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4"/></svg>
+              <span class="font-medium">我的帳號</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
+              <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
+              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
+              <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
+              <li><hr class="my-1"></li>
+              <li><a href="{{ url_for('logout') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
+            </ul>
+          </div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const btn = document.getElementById('accountDropdownBtn');
+              const menu = document.getElementById('accountDropdownMenu');
+              btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+              });
+              document.addEventListener('click', function() {
+                menu.classList.add('hidden');
+              });
+            });
+          </script>
+        {% else %}
+          <ul class="flex gap-6">
+            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            <li><a href="{{ url_for('signup') }}" class="hover:underline">Sign Up</a></li>
           </ul>
-        </div>
-        <script>
-          // Dropdown toggle
-          document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('accountDropdownBtn');
-            const menu = document.getElementById('accountDropdownMenu');
-            btn.addEventListener('click', function(e) {
-              e.stopPropagation();
-              menu.classList.toggle('hidden');
-            });
-            document.addEventListener('click', function() {
-              menu.classList.add('hidden');
-            });
-          });
-        </script>
+        {% endif %}
       </nav>
     </div>
   </header>
@@ -88,10 +94,14 @@
       <div>
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
-        <form class="flex">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" />
+        <form class="flex" id="subscribeForm">
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
+        <!-- 成功通知 -->
+        <div id="subscribeSuccess" class="hidden mt-2 bg-green-50 text-black text-sm rounded px-3 py-2">
+          成功訂閱！感謝您的加入。
+        </div>
       </div>
       <!-- 支援資訊 -->
       <div>
@@ -108,7 +118,7 @@
           <li><a href="{{ url_for('login') }}" class="hover:underline text-sm">登入 / 註冊</a></li>
           <li><a href="{{ url_for('cart') }}" class="hover:underline text-sm">購物車</a></li>
           <li><a href="{{ url_for('wishlist') }}" class="hover:underline text-sm">願望清單</a></li>
-          <li><a href="#" class="hover:underline text-sm">商店</a></li>
+          
         </ul>
       </div>
       <!-- 快速連結 -->
@@ -118,7 +128,7 @@
           <li><a href="#" class="hover:underline text-sm">隱私權政策</a></li>
           <li><a href="#" class="hover:underline text-sm">使用條款</a></li>
           <li><a href="#" class="hover:underline text-sm">FAQ</a></li>
-          <li><a href="#" class="hover:underline text-sm">聯絡我們</a></li>
+          <li><a href="{{ url_for('contact') }}" class="hover:underline text-sm">聯絡我們</a></li>
         </ul>
       </div>
     </div>
@@ -126,5 +136,24 @@
       &copy; 2024 Exclusive. All rights reserved.
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subscribeForm = document.getElementById('subscribeForm');
+      const subscribeEmail = document.getElementById('subscribeEmail');
+      const subscribeSuccess = document.getElementById('subscribeSuccess');
+
+      subscribeForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const email = subscribeEmail.value;
+        if (email) {
+          subscribeSuccess.classList.remove('hidden');
+          subscribeEmail.value = ''; // Clear input after successful submission
+          setTimeout(() => {
+            subscribeSuccess.classList.add('hidden');
+          }, 3000); // Hide after 3 seconds
+        }
+      });
+    });
+  </script>
 </body>
 </html>
