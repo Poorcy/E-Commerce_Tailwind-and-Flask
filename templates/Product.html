@@ -28,7 +28,7 @@
             </button>
             <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
               <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('orders') }}" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>
@@ -62,17 +62,37 @@
     <section class="container mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-12">
       <!-- 商品圖片區 -->
       <div class="flex flex-col gap-4">
-        <img src="https://placehold.co/446x315" alt="商品主圖" class="rounded-xl shadow-lg w-full h-80 object-cover" />
+        {% if product and product.image_url %}
+          <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="rounded-xl shadow-lg w-full h-80 object-cover" />
+        {% else %}
+          <img src="{{ url_for('static', filename='images/gamepad.png') }}" alt="商品主圖" class="rounded-xl shadow-lg w-full h-80 object-cover" />
+        {% endif %}
         <div class="flex gap-4">
-          <img src="https://placehold.co/121x114" alt="商品圖1" class="rounded-lg w-24 h-20 object-cover" />
-          <img src="https://placehold.co/112x97" alt="商品圖2" class="rounded-lg w-24 h-20 object-cover" />
-          <img src="https://placehold.co/134x94" alt="商品圖3" class="rounded-lg w-24 h-20 object-cover" />
-          <img src="https://placehold.co/122x106" alt="商品圖4" class="rounded-lg w-24 h-20 object-cover" />
+          {% if product and product.image_url %}
+            <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="rounded-lg w-24 h-20 object-cover" />
+          {% else %}
+            <img src="{{ url_for('static', filename='images/gamepad1.png') }}" alt="商品圖1" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename='images/gamepad2.png') }}" alt="商品圖2" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename='images/gamepad3.png') }}" alt="商品圖3" class="rounded-lg w-24 h-20 object-cover" />
+            <img src="{{ url_for('static', filename='images/gamepad4.png') }}" alt="商品圖4" class="rounded-lg w-24 h-20 object-cover" />
+          {% endif %}
         </div>
       </div>
       <!-- 商品資訊區 -->
       <div class="flex flex-col gap-6">
-        <h1 class="text-3xl font-bold mb-2">Havic HV G-92 Gamepad</h1>
+        <div class="flex items-center justify-between">
+          <h1 class="text-3xl font-bold">{{ product.name if product else 'Havic HV G-92 Gamepad' }}</h1>
+          {% if user and product %}
+            <!-- 愛心按鈕 -->
+            <button id="wishlistBtn" class="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 transition" 
+                    data-product-id="{{ product.id }}" title="加入願望清單">
+              <img id="wishlistIcon" src="{{ url_for('static', filename='images/empty_heart.png') }}" alt="願望清單" class="w-7 h-7">
+            </button>
+          {% endif %}
+        </div>
         <div class="flex items-center gap-4 mb-2">
           <div class="flex gap-1">
             <span class="w-5 h-5 bg-amber-400 rounded-sm inline-block"></span>
@@ -82,36 +102,75 @@
             <span class="w-5 h-5 bg-black/20 rounded-sm inline-block"></span>
           </div>
           <span class="text-gray-500 text-sm">(150 Reviews)</span>
-          <span class="text-green-500 text-sm font-medium ml-4">In Stock</span>
+          <span id="stock-status" class="text-green-500 text-sm font-medium ml-4">In Stock</span>
         </div>
-        <p class="text-2xl font-semibold text-red-500 mb-2">$192.00</p>
-        <p class="text-gray-700 mb-4">PlayStation 5 Controller Skin 高品質貼膜，易於安裝與移除，壓力感應黏著劑，無氣泡殘膠。</p>
-        <form class="flex flex-col gap-4">
+        <p class="text-2xl font-semibold text-red-500 mb-2">${{ "%.2f"|format(product.price) if product else '192.00' }}</p>
+        
+        <!-- 庫存顯示 -->
+        {% if product and product.variants %}
+        <div class="mb-4">
+          <p class="text-gray-700 mb-2">{{ product.description if product else 'PlayStation 5 Controller Skin 高品質貼膜，易於安裝與移除，壓力感應黏著劑，無氣泡殘膠。' }}</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-600">庫存:</span>
+            <span id="stock-display" class="text-sm font-semibold text-green-600">
+              {% set total_stock = product.variants | sum(attribute='stock_quantity') %}
+              {{ total_stock }} 件
+            </span>
+          </div>
+        </div>
+        {% else %}
+        <p class="text-gray-700 mb-4">{{ product.description if product else 'PlayStation 5 Controller Skin 高品質貼膜，易於安裝與移除，壓力感應黏著劑，無氣泡殘膠。' }}</p>
+        {% endif %}
+        <form class="flex flex-col gap-4" id="addToCartForm">
+          <input type="hidden" name="product_id" value="{{ product.id if product else '' }}">
+          
+          {% if product and product.variants %}
           <div class="flex items-center gap-4">
             <label class="text-lg font-medium">顏色：</label>
-            <span class="w-5 h-5 bg-indigo-300 rounded-full inline-block border"></span>
-            <span class="w-5 h-5 bg-white border-2 border-black rounded-full inline-block"></span>
-            <span class="w-5 h-5 bg-red-400 rounded-full inline-block"></span>
+            <div class="flex gap-2">
+              {% set colors = [] %}
+              {% for variant in product.variants %}
+                {% if variant.color and variant.color not in colors %}
+                  {% set _ = colors.append(variant.color) %}
+                  <button type="button" class="color-option px-4 py-2 rounded border border-gray-300 hover:border-gray-400 transition font-medium text-sm"
+                          data-color="{{ variant.color }}">
+                    {{ variant.color }}
+                  </button>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
           <div class="flex items-center gap-4">
             <label class="text-lg font-medium">尺寸：</label>
-            <button type="button" class="w-10 h-10 rounded border border-black/50 flex items-center justify-center font-medium">XS</button>
-            <button type="button" class="w-10 h-10 rounded border border-black/50 flex items-center justify-center font-medium">S</button>
-            <button type="button" class="w-10 h-10 rounded bg-red-500 text-white flex items-center justify-center font-medium">M</button>
-            <button type="button" class="w-10 h-10 rounded border border-black/50 flex items-center justify-center font-medium">L</button>
-            <button type="button" class="w-10 h-10 rounded border border-black/50 flex items-center justify-center font-medium">XL</button>
+            <div class="flex gap-2">
+              {% set sizes = [] %}
+              {% for variant in product.variants %}
+                {% if variant.size and variant.size not in sizes %}
+                  {% set _ = sizes.append(variant.size) %}
+                  <button type="button" class="size-option w-10 h-10 rounded border border-gray-300 hover:border-gray-400 transition font-medium"
+                          data-size="{{ variant.size }}">
+                    {{ variant.size }}
+                  </button>
+                {% endif %}
+              {% endfor %}
+            </div>
           </div>
+          <div id="selection-required" class="text-orange-600 text-sm font-medium mt-2">
+            ⚠️ 請選擇顏色和尺寸後才能加入購物車
+          </div>
+          {% endif %}
+          
           <div class="flex items-center gap-4">
             <label class="text-lg font-medium">數量：</label>
             <div class="flex items-center border rounded overflow-hidden">
-              <button type="button" class="px-3 py-1 text-lg">-</button>
-              <input type="number" value="1" min="1" class="w-12 text-center border-l border-r" />
-              <button type="button" class="px-3 py-1 text-lg">+</button>
+              <button type="button" class="px-3 py-1 text-lg quantity-decrease">-</button>
+              <input type="number" name="quantity" value="1" min="1" class="w-12 text-center border-l border-r" id="quantityInput" />
+              <button type="button" class="px-3 py-1 text-lg quantity-increase">+</button>
             </div>
           </div>
           <div class="flex gap-4 mt-4">
-            <button type="submit" class="bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium">加入購物車</button>
-            <button type="button" class="bg-black text-white px-8 py-3 rounded hover:bg-gray-800 transition font-medium">立即購買</button>
+            <button type="submit" id="addToCartBtn" class="bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium">加入購物車</button>
+            <button type="button" id="buyNowBtn" class="bg-black text-white px-8 py-3 rounded hover:bg-gray-800 transition font-medium">立即購買</button>
           </div>
         </form>
         <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -178,7 +237,7 @@
         <h2 class="font-bold text-xl mb-2">Exclusive</h2>
         <p class="mb-4">Get 10% off your first order</p>
         <form class="flex" id="subscribeForm">
-          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-32 text-black focus:outline-none" id="subscribeEmail" required />
+          <input type="email" placeholder="輸入你的 Email" class="rounded-l px-3 py-2 text-black focus:outline-none" id="subscribeEmail" required />
           <button type="submit" class="bg-red-500 px-4 py-2 rounded-r hover:bg-red-600 transition">訂閱</button>
         </form>
         <!-- 成功通知 -->
@@ -221,21 +280,455 @@
   </footer>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // 訂閱功能
       const subscribeForm = document.getElementById('subscribeForm');
       const subscribeEmail = document.getElementById('subscribeEmail');
       const subscribeSuccess = document.getElementById('subscribeSuccess');
 
-      subscribeForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const email = subscribeEmail.value;
-        if (email) {
-          subscribeSuccess.classList.remove('hidden');
-          subscribeEmail.value = ''; // Clear input after successful submission
-          setTimeout(() => {
-            subscribeSuccess.classList.add('hidden');
-          }, 3000); // Hide after 3 seconds
+      if (subscribeForm) {
+        subscribeForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const email = subscribeEmail.value;
+          if (email) {
+            subscribeSuccess.classList.remove('hidden');
+            subscribeEmail.value = ''; // Clear input after successful submission
+            setTimeout(() => {
+              subscribeSuccess.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+          }
+        });
+      }
+
+      // 購物車功能
+      const addToCartForm = document.getElementById('addToCartForm');
+      const quantityInput = document.getElementById('quantityInput');
+      const quantityDecrease = document.querySelector('.quantity-decrease');
+      const quantityIncrease = document.querySelector('.quantity-increase');
+      const stockDisplay = document.getElementById('stock-display');
+      const stockStatus = document.getElementById('stock-status');
+      const addToCartBtn = document.getElementById('addToCartBtn');
+      const buyNowBtn = document.getElementById('buyNowBtn');
+      let selectedVariantId = null;
+      let selectedColor = null;
+      let selectedSize = null;
+      let currentStock = 0;
+      
+      // 獲取變體數據
+      let variantData = [];
+      
+      // 從API獲取變體數據
+      async function loadVariantData() {
+        {% if product %}
+        try {
+          const response = await fetch('/api/products/{{ product.id }}/variants');
+          const data = await response.json();
+          variantData = data.variants || [];
+          updateStockDisplay(); // 初始化庫存顯示
+        } catch (error) {
+          console.error('Error loading variant data:', error);
         }
+        {% endif %}
+      }
+      
+      // 頁面載入時獲取變體數據
+      loadVariantData();
+      
+      // 獲取總庫存數量
+      function getTotalStock() {
+        return variantData.reduce((total, variant) => total + variant.stock_quantity, 0);
+      }
+      
+      // 根據顏色和尺寸找到變體
+      function findVariant(color, size) {
+        return variantData.find(variant => 
+          variant.color === color && variant.size === size
+        );
+      }
+      
+      // 根據顏色找到所有相關變體的總庫存
+      function getStockByColor(color) {
+        return variantData
+          .filter(variant => variant.color === color)
+          .reduce((total, variant) => total + variant.stock_quantity, 0);
+      }
+      
+      // 根據尺寸找到所有相關變體的總庫存
+      function getStockBySize(size) {
+        return variantData
+          .filter(variant => variant.size === size)
+          .reduce((total, variant) => total + variant.stock_quantity, 0);
+      }
+      
+      // 更新庫存狀態顯示
+      function updateStockStatus() {
+        if (!stockStatus) return;
+        
+        if (currentStock > 0) {
+          stockStatus.textContent = 'In Stock';
+          stockStatus.className = 'text-green-500 text-sm font-medium ml-4';
+        } else {
+          stockStatus.textContent = 'Out of Stock';
+          stockStatus.className = 'text-red-500 text-sm font-medium ml-4';
+        }
+      }
+      
+      // 更新按鈕狀態
+      function updateButtonState() {
+        if (!addToCartBtn || !buyNowBtn) return;
+        
+        // 檢查是否有產品變體需要選擇
+        const hasVariants = variantData.length > 0;
+        const hasSelectedColor = selectedColor !== null;
+        const hasSelectedSize = selectedSize !== null;
+        
+        // 更新選擇提示
+        const selectionRequired = document.getElementById('selection-required');
+        if (selectionRequired) {
+          if (hasVariants && (!hasSelectedColor || !hasSelectedSize)) {
+            selectionRequired.style.display = 'block';
+          } else {
+            selectionRequired.style.display = 'none';
+          }
+        }
+        
+        if (hasVariants) {
+          // 有變體的產品，必須選擇顏色和尺寸
+          if (hasSelectedColor && hasSelectedSize && currentStock > 0) {
+            // 已選擇顏色和尺寸且有庫存，啟用按鈕
+            addToCartBtn.disabled = false;
+            buyNowBtn.disabled = false;
+            addToCartBtn.className = 'bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium';
+            buyNowBtn.className = 'bg-black text-white px-8 py-3 rounded hover:bg-gray-800 transition font-medium';
+          } else {
+            // 未選擇顏色或尺寸，或無庫存，禁用按鈕
+            addToCartBtn.disabled = true;
+            buyNowBtn.disabled = true;
+            addToCartBtn.className = 'bg-gray-400 text-gray-600 px-8 py-3 rounded cursor-not-allowed font-medium';
+            buyNowBtn.className = 'bg-gray-400 text-gray-600 px-8 py-3 rounded cursor-not-allowed font-medium';
+          }
+        } else {
+          // 沒有變體的產品，只檢查庫存
+          if (currentStock > 0) {
+            // 有庫存，啟用按鈕
+            addToCartBtn.disabled = false;
+            buyNowBtn.disabled = false;
+            addToCartBtn.className = 'bg-red-500 text-white px-8 py-3 rounded hover:bg-red-600 transition font-medium';
+            buyNowBtn.className = 'bg-black text-white px-8 py-3 rounded hover:bg-gray-800 transition font-medium';
+          } else {
+            // 無庫存，禁用按鈕
+            addToCartBtn.disabled = true;
+            buyNowBtn.disabled = true;
+            addToCartBtn.className = 'bg-gray-400 text-gray-600 px-8 py-3 rounded cursor-not-allowed font-medium';
+            buyNowBtn.className = 'bg-gray-400 text-gray-600 px-8 py-3 rounded cursor-not-allowed font-medium';
+          }
+        }
+      }
+      
+      // 更新庫存顯示
+      function updateStockDisplay() {
+        if (!stockDisplay) return;
+        
+        if (selectedColor && selectedSize) {
+          // 同時選擇了顏色和尺寸
+          const variant = findVariant(selectedColor, selectedSize);
+          if (variant) {
+            // 找到對應的變體
+            currentStock = variant.stock_quantity;
+            stockDisplay.textContent = `${currentStock} 件`;
+            stockDisplay.className = currentStock > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-600';
+            selectedVariantId = variant.id;
+          } else {
+            // 找不到對應的變體，顯示0庫存
+            currentStock = 0;
+            stockDisplay.textContent = '0 件';
+            stockDisplay.className = 'text-sm font-semibold text-red-600';
+            selectedVariantId = null;
+          }
+        } else if (selectedColor) {
+          // 只選擇了顏色
+          currentStock = getStockByColor(selectedColor);
+          stockDisplay.textContent = `${currentStock} 件`;
+          stockDisplay.className = currentStock > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-600';
+          selectedVariantId = null;
+        } else if (selectedSize) {
+          // 只選擇了尺寸
+          currentStock = getStockBySize(selectedSize);
+          stockDisplay.textContent = `${currentStock} 件`;
+          stockDisplay.className = currentStock > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-600';
+          selectedVariantId = null;
+        } else {
+          // 沒有選擇，顯示總庫存
+          currentStock = getTotalStock();
+          stockDisplay.textContent = `${currentStock} 件`;
+          stockDisplay.className = 'text-sm font-semibold text-green-600';
+          selectedVariantId = null;
+        }
+        
+        // 更新按鈕狀態和庫存狀態
+        updateButtonState();
+        updateStockStatus();
+      }
+
+      // 數量增減
+      if (quantityDecrease) {
+        quantityDecrease.addEventListener('click', function() {
+          const currentValue = parseInt(quantityInput.value);
+          if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+          }
+        });
+      }
+
+      if (quantityIncrease) {
+        quantityIncrease.addEventListener('click', function() {
+          const currentValue = parseInt(quantityInput.value);
+          quantityInput.value = currentValue + 1;
+        });
+      }
+
+      // 顏色選擇
+      const colorOptions = document.querySelectorAll('.color-option');
+      colorOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          // 移除其他選中的顏色
+          colorOptions.forEach(opt => {
+            opt.classList.remove('bg-red-500', 'text-white');
+            opt.classList.add('bg-white', 'text-gray-700');
+          });
+          // 選中當前顏色
+          this.classList.remove('bg-white', 'text-gray-700');
+          this.classList.add('bg-red-500', 'text-white');
+          selectedColor = this.dataset.color;
+          updateStockDisplay();
+        });
       });
+
+      // 尺寸選擇
+      const sizeOptions = document.querySelectorAll('.size-option');
+      sizeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          // 移除其他選中的尺寸
+          sizeOptions.forEach(opt => opt.classList.remove('bg-red-500', 'text-white'));
+          // 選中當前尺寸
+          this.classList.add('bg-red-500', 'text-white');
+          selectedSize = this.dataset.size;
+          updateStockDisplay();
+        });
+      });
+
+      // 重置選擇功能
+      function resetSelection() {
+        // 重置顏色選擇
+        colorOptions.forEach(opt => {
+          opt.classList.remove('bg-red-500', 'text-white');
+          opt.classList.add('bg-white', 'text-gray-700');
+        });
+        // 重置尺寸選擇
+        sizeOptions.forEach(opt => {
+          opt.classList.remove('bg-red-500', 'text-white');
+          opt.classList.add('bg-white', 'text-gray-700');
+        });
+        selectedVariantId = null;
+        selectedColor = null;
+        selectedSize = null;
+        updateStockDisplay();
+      }
+      
+      // 加入購物車
+      if (addToCartForm) {
+        addToCartForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          
+          const productId = this.querySelector('input[name="product_id"]').value;
+          const quantity = parseInt(quantityInput.value);
+          
+          if (!productId) {
+            alert('請選擇產品');
+            return;
+          }
+          
+          // 檢查是否有產品變體需要選擇
+          if (variantData.length > 0) {
+            // 有變體的產品，必須選擇顏色和尺寸
+            if (!selectedColor) {
+              alert('請選擇顏色');
+              return;
+            }
+            if (!selectedSize) {
+              alert('請選擇尺寸');
+              return;
+            }
+          }
+          
+          // 檢查庫存
+          if (currentStock <= 0) {
+            alert('此商品目前無庫存，無法加入購物車');
+            return;
+          }
+          
+          // 檢查數量是否超過庫存
+          if (quantity > currentStock) {
+            alert(`庫存不足，目前只有 ${currentStock} 件`);
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('product_id', productId);
+          formData.append('quantity', quantity);
+          if (selectedVariantId) {
+            formData.append('variant_id', selectedVariantId);
+          }
+
+          fetch('/cart/add', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('已成功加入購物車！');
+              // 可選：跳轉到購物車頁面
+              // window.location.href = '/cart';
+            } else {
+              alert('加入購物車失敗：' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('加入購物車失敗，請稍後再試');
+          });
+        });
+      }
+
+      // 立即購買功能
+      if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', function() {
+          const productId = document.querySelector('input[name="product_id"]').value;
+          const quantity = parseInt(quantityInput.value);
+          
+          if (!productId) {
+            alert('請選擇產品');
+            return;
+          }
+          
+          // 檢查是否有產品變體需要選擇
+          if (variantData.length > 0) {
+            // 有變體的產品，必須選擇顏色和尺寸
+            if (!selectedColor) {
+              alert('請選擇顏色');
+              return;
+            }
+            if (!selectedSize) {
+              alert('請選擇尺寸');
+              return;
+            }
+          }
+          
+          // 檢查庫存
+          if (currentStock <= 0) {
+            alert('此商品目前無庫存，無法購買');
+            return;
+          }
+          
+          // 檢查數量是否超過庫存
+          if (quantity > currentStock) {
+            alert(`庫存不足，目前只有 ${currentStock} 件`);
+            return;
+          }
+
+          // 準備立即購買的數據
+          const buyNowData = {
+            product_id: productId,
+            quantity: quantity,
+            variant_id: selectedVariantId,
+            color: selectedColor,
+            size: selectedSize,
+            product_name: '{{ product.name if product else "" }}',
+            price: parseFloat('{{ product.price if product else 0 }}'),
+            image_url: '{{ product.image_url if product else "" }}'
+          };
+
+          // 將數據存儲到 sessionStorage
+          sessionStorage.setItem('buyNowData', JSON.stringify(buyNowData));
+          
+          // 跳轉到立即購買結帳頁面
+          window.location.href = '/buy-now';
+        });
+      }
+
+      // 願望清單功能
+      const wishlistBtn = document.getElementById('wishlistBtn');
+      const wishlistIcon = document.getElementById('wishlistIcon');
+      
+      if (wishlistBtn && wishlistIcon) {
+        const productId = wishlistBtn.getAttribute('data-product-id');
+        
+        // 檢查產品是否已在願望清單中
+        fetch(`/api/wishlist/check/${productId}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.in_wishlist) {
+              wishlistIcon.src = "{{ url_for('static', filename='images/red_heart.png') }}";
+              wishlistBtn.title = "從願望清單移除";
+            }
+          })
+          .catch(error => {
+            console.error('Error checking wishlist status:', error);
+          });
+        
+        // 愛心按鈕點擊事件
+        wishlistBtn.addEventListener('click', function() {
+          const isInWishlist = wishlistIcon.src.includes('red_heart.png');
+          
+          if (isInWishlist) {
+            // 從願望清單移除
+            fetch('/api/wishlist/remove', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                wishlistIcon.src = "{{ url_for('static', filename='images/empty_heart.png') }}";
+                wishlistBtn.title = "加入願望清單";
+                alert('已從願望清單移除');
+              } else {
+                alert(data.message || '移除失敗');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('移除失敗，請稍後再試');
+            });
+          } else {
+            // 加入願望清單
+            fetch('/api/wishlist/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                wishlistIcon.src = "{{ url_for('static', filename='images/red_heart.png') }}";
+                wishlistBtn.title = "從願望清單移除";
+                alert('已加入願望清單！');
+              } else {
+                alert(data.message || '加入失敗');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('加入失敗，請稍後再試');
+            });
+          }
+        });
+      }
     });
   </script>
 </body>

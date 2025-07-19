@@ -28,7 +28,7 @@
             </button>
             <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
               <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('orders') }}" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>

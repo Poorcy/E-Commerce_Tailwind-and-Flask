@@ -28,7 +28,7 @@
             </button>
             <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
               <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('orders') }}" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>
@@ -59,36 +59,42 @@
   </header>
   <main class="container mx-auto px-4 py-12 min-h-[60vh]">
     <h1 class="text-3xl font-bold mb-8">我的願望清單</h1>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <!-- 範例商品卡片 1 -->
-      <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-        <img src="https://placehold.co/300x200" alt="商品1" class="mb-4 rounded"/>
-        <h3 class="text-lg font-semibold mb-2">HAVIT HV-G92 Gamepad</h3>
-        <p class="text-red-500 font-bold mb-1">$120 <span class="text-gray-400 line-through text-sm">$160</span></p>
-        <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-      </article>
-      <!-- 範例商品卡片 2 -->
-      <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-        <img src="https://placehold.co/300x200" alt="商品2" class="mb-4 rounded"/>
-        <h3 class="text-lg font-semibold mb-2">AK-900 Wired Keyboard</h3>
-        <p class="text-red-500 font-bold mb-1">$960 <span class="text-gray-400 line-through text-sm">$1160</span></p>
-        <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-      </article>
-      <!-- 範例商品卡片 3 -->
-      <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-        <img src="https://placehold.co/300x200" alt="商品3" class="mb-4 rounded"/>
-        <h3 class="text-lg font-semibold mb-2">IPS LCD Gaming Monitor</h3>
-        <p class="text-red-500 font-bold mb-1">$370 <span class="text-gray-400 line-through text-sm">$400</span></p>
-        <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-      </article>
-      <!-- 範例商品卡片 4 -->
-      <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-        <img src="https://placehold.co/300x200" alt="商品4" class="mb-4 rounded"/>
-        <h3 class="text-lg font-semibold mb-2">S-Series Comfort Chair</h3>
-        <p class="text-red-500 font-bold mb-1">$375 <span class="text-gray-400 line-through text-sm">$400</span></p>
-        <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-      </article>
-    </div>
+    
+    {% if wishlist_items %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for item in wishlist_items %}
+          <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col relative">
+            <!-- 移除愛心按鈕 -->
+            <button class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 transition remove-wishlist-btn" 
+                    data-product-id="{{ item.product.id }}" title="從願望清單移除">
+              <img src="{{ url_for('static', filename='images/red_heart.png') }}" alt="移除" class="w-6 h-6">
+            </button>
+            
+            <a href="{{ url_for('product', product_id=item.product.id) }}" class="block">
+              {% if item.product.image_url %}
+                <img src="{{ url_for('static', filename=item.product.image_url) }}" alt="{{ item.product.name }}" class="mb-4 rounded w-full h-48 object-cover"/>
+              {% else %}
+                <img src="{{ url_for('static', filename='images/gamepad.png') }}" alt="{{ item.product.name }}" class="mb-4 rounded w-full h-48 object-cover"/>
+              {% endif %}
+              <h3 class="text-lg font-semibold mb-2">{{ item.product.name }}</h3>
+            </a>
+            <p class="text-red-500 font-bold mb-1">${{ "%.2f"|format(item.product.price) }}</p>
+            <p class="text-sm text-gray-600 mb-4">{{ item.product.description[:50] }}{% if item.product.description|length > 50 %}...{% endif %}</p>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-12">
+        <div class="text-gray-400 mb-4">
+          <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">您的願望清單是空的</h3>
+        <p class="text-gray-500 mb-6">開始瀏覽商品並將喜歡的商品加入願望清單吧！</p>
+        <a href="{{ url_for('home') }}" class="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">瀏覽商品</a>
+      </div>
+    {% endif %}
   </main>
   <footer class="bg-black text-white py-10 mt-12">
     <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -155,6 +161,41 @@
           }, 3000); // Hide after 3 seconds
         }
       });
+
+      // 移除願望清單項目
+      document.querySelectorAll('.remove-wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const productId = this.getAttribute('data-product-id');
+          const article = this.closest('article');
+          
+          fetch('/api/wishlist/remove', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `product_id=${productId}`
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              article.remove();
+              // 檢查是否還有其他項目
+              const remainingItems = document.querySelectorAll('.remove-wishlist-btn');
+              if (remainingItems.length === 0) {
+                location.reload(); // 重新載入頁面顯示空狀態
+              }
+            } else {
+              alert(data.message || '移除失敗');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('移除失敗，請稍後再試');
+          });
+        });
+      });
+
+
     });
   </script>
 </body>

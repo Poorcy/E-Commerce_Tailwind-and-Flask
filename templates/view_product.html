@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - 產品詳情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">產品詳情</h1>
+                <div class="space-x-2">
+                    <a href="{{ url_for('edit_product', product_id=product.id) }}" 
+                       class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        編輯產品
+                    </a>
+                    <a href="{{ url_for('admin_products') }}" 
+                       class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        返回產品列表
+                    </a>
+                </div>
+            </div>
+
+            <!-- 產品基本資訊 -->
+            <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">產品基本資訊</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+                        <p class="text-gray-600 mt-2">{{ product.description or '無描述' }}</p>
+                        
+                        <div class="mt-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">類別：</span>
+                                <span class="font-medium">{{ product.category or '未分類' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">基本價格：</span>
+                                <span class="font-medium text-green-600">${{ "%.2f"|format(product.price) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">狀態：</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if product.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ '啟用' if product.is_active else '停用' }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">建立時間：</span>
+                                <span class="font-medium">{{ product.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if product.image_url %}
+                    <div class="flex justify-center">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" 
+                             class="max-w-xs h-auto rounded-lg shadow-md">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 產品變體 -->
+            <div class="bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">產品變體</h2>
+                
+                {% if product.variants %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">顏色</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">尺寸</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">庫存數量</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">價格調整</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最終價格</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for variant in product.variants %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ variant.sku or 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ variant.color or 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ variant.size or 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if variant.stock_quantity > 10 %}bg-green-100 text-green-800{% elif variant.stock_quantity > 0 %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ variant.stock_quantity }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% if variant.price_adjustment > 0 %}
+                                        <span class="text-green-600">+${{ "%.2f"|format(variant.price_adjustment) }}</span>
+                                    {% elif variant.price_adjustment < 0 %}
+                                        <span class="text-red-600">-${{ "%.2f"|format(variant.price_adjustment|abs) }}</span>
+                                    {% else %}
+                                        <span class="text-gray-500">$0.00</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                    ${{ "%.2f"|format(variant.get_final_price()) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if variant.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ '啟用' if variant.is_active else '停用' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 庫存統計 -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">庫存統計</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">
+                                {{ product.variants|selectattr('stock_quantity', 'gt', 10)|list|length }}
+                            </div>
+                            <div class="text-sm text-gray-600">庫存充足 (>10)</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-600">
+                                {{ product.variants|selectattr('stock_quantity', 'gt', 0)|selectattr('stock_quantity', 'le', 10)|list|length }}
+                            </div>
+                            <div class="text-sm text-gray-600">庫存不足 (1-10)</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-600">
+                                {{ product.variants|selectattr('stock_quantity', 'eq', 0)|list|length }}
+                            </div>
+                            <div class="text-sm text-gray-600">缺貨 (0)</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500 text-lg">此產品目前沒有任何變體。</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

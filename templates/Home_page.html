@@ -28,7 +28,7 @@
             </button>
             <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
               <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('orders') }}" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>
@@ -181,47 +181,29 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="container mx-auto px-4">
         <h2 class="text-2xl font-bold mb-8">精選商品</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <!-- 商品卡片 1 -->
-          <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <a href="{{ url_for('product') }}" class="block">
-              <img src="https://placehold.co/300x200" alt="商品1" class="mb-4 rounded"/>
-              <h3 class="text-lg font-semibold mb-2">HAVIT HV-G92 Gamepad</h3>
-            </a>
-            <p class="text-red-500 font-bold mb-1">$120 <span class="text-gray-400 line-through text-sm">$160</span></p>
-            <p class="text-sm text-gray-600 mb-4">五顆星 (88)</p>
-            <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-          </article>
-          <!-- 商品卡片 2 -->
-          <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <a href="{{ url_for('product') }}" class="block">
-              <img src="https://placehold.co/300x200" alt="商品2" class="mb-4 rounded"/>
-              <h3 class="text-lg font-semibold mb-2">AK-900 Wired Keyboard</h3>
-            </a>
-            <p class="text-red-500 font-bold mb-1">$960 <span class="text-gray-400 line-through text-sm">$1160</span></p>
-            <p class="text-sm text-gray-600 mb-4">四顆星 (75)</p>
-            <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-          </article>
-          <!-- 商品卡片 3 -->
-          <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <a href="{{ url_for('product') }}" class="block">
-              <img src="https://placehold.co/300x200" alt="商品3" class="mb-4 rounded"/>
-              <h3 class="text-lg font-semibold mb-2">IPS LCD Gaming Monitor</h3>
-            </a>
-            <p class="text-red-500 font-bold mb-1">$370 <span class="text-gray-400 line-through text-sm">$400</span></p>
-            <p class="text-sm text-gray-600 mb-4">五顆星 (99)</p>
-            <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-          </article>
-          <!-- 商品卡片 4 -->
-          <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-            <a href="{{ url_for('product') }}" class="block">
-              <img src="https://placehold.co/300x200" alt="商品4" class="mb-4 rounded"/>
-              <h3 class="text-lg font-semibold mb-2">S-Series Comfort Chair</h3>
-            </a>
-            <p class="text-red-500 font-bold mb-1">$375 <span class="text-gray-400 line-through text-sm">$400</span></p>
-            <p class="text-sm text-gray-600 mb-4">五顆星 (99)</p>
-            <button class="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">加入購物車</button>
-          </article>
-    </div>
+          {% for product in featured_products %}
+            <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col relative">
+              {% if user %}
+                <!-- 愛心按鈕 -->
+                <button class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 transition wishlist-btn" 
+                        data-product-id="{{ product.id }}" title="加入願望清單">
+                  <img class="w-6 h-6 wishlist-icon" src="{{ url_for('static', filename='images/empty_heart_96.png') }}" alt="願望清單">
+                </button>
+              {% endif %}
+              
+              <a href="{{ url_for('product', product_id=product.id) }}" class="block">
+                {% if product.image_url %}
+                  <img src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}" class="mb-4 rounded w-full h-48 object-cover"/>
+                {% else %}
+                  <img src="{{ url_for('static', filename='images/gamepad.png') }}" alt="{{ product.name }}" class="mb-4 rounded w-full h-48 object-cover"/>
+                {% endif %}
+                <h3 class="text-lg font-semibold mb-2">{{ product.name }}</h3>
+              </a>
+              <p class="text-red-500 font-bold mb-1">${{ "%.2f"|format(product.price) }}</p>
+              <p class="text-sm text-gray-600 mb-4">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</p>
+            </article>
+          {% endfor %}
+        </div>
       </div>
     </section>
     
@@ -240,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <!-- 商品卡片 1 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <a href="{{ url_for('product') }}" class="block">
+          <a href="{{ url_for('product') }}?name=The north coat" class="block">
             <img src="https://placehold.co/140x146" alt="The north coat" class="mb-4 rounded w-full h-44 object-cover"/>
             <h3 class="text-lg font-semibold mb-2">The north coat</h3>
           </a>
@@ -261,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </article>
         <!-- 商品卡片 2 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <a href="{{ url_for('product') }}" class="block">
+          <a href="{{ url_for('product') }}?name=Gucci duffle bag" class="block">
             <img src="https://placehold.co/178x129" alt="Gucci duffle bag" class="mb-4 rounded w-full h-44 object-cover"/>
             <h3 class="text-lg font-semibold mb-2">Gucci duffle bag</h3>
           </a>
@@ -282,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </article>
         <!-- 商品卡片 3 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <a href="{{ url_for('product') }}" class="block">
+          <a href="{{ url_for('product') }}?name=RGB liquid CPU Cooler" class="block">
             <img src="https://placehold.co/191x95" alt="RGB liquid CPU Cooler" class="mb-4 rounded w-full h-44 object-cover"/>
             <h3 class="text-lg font-semibold mb-2">RGB liquid CPU Cooler</h3>
           </a>
@@ -303,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </article>
         <!-- 商品卡片 4 -->
         <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-          <a href="{{ url_for('product') }}" class="block">
+          <a href="{{ url_for('product') }}?name=Small BookSelf" class="block">
             <img src="https://placehold.co/140x176" alt="Small BookSelf" class="mb-4 rounded w-full h-44 object-cover"/>
             <h3 class="text-lg font-semibold mb-2">Small BookSelf</h3>
           </a>
@@ -377,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
     <!-- 商品卡片 1 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=Breed Dry Dog Food">
         <img src="https://placehold.co/115x180" alt="Breed Dry Dog Food" class="mb-4 rounded w-full h-44 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">Breed Dry Dog Food</h3>
       </a>
@@ -395,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 2 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=CANON EOS DSLR Camera">
         <img src="https://placehold.co/146x163" alt="CANON EOS DSLR Camera" class="mb-4 rounded w-full h-40 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">CANON EOS DSLR Camera</h3>
       </a>
@@ -413,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 3 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=ASUS FHD Gaming Laptop">
         <img src="https://placehold.co/172x180" alt="ASUS FHD Gaming Laptop" class="mb-4 rounded w-full h-44 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">ASUS FHD Gaming Laptop</h3>
       </a>
@@ -431,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 4 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=Curology Product Set">
         <img src="https://placehold.co/172x159" alt="Curology Product Set" class="mb-4 rounded w-full h-40 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">Curology Product Set</h3>
       </a>
@@ -449,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 5 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=Kids Electric Car">
         <img src="https://placehold.co/180x133" alt="Kids Electric Car" class="mb-4 rounded w-full h-32 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">Kids Electric Car</h3>
       </a>
@@ -472,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 6 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=Jr. Zoom Soccer Cleats">
         <img src="https://placehold.co/186x164" alt="Jr. Zoom Soccer Cleats" class="mb-4 rounded w-full h-40 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">Jr. Zoom Soccer Cleats</h3>
       </a>
@@ -495,7 +477,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 7 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=GP11 Shooter USB Gamepad">
         <img src="https://placehold.co/178x150" alt="GP11 Shooter USB Gamepad" class="mb-4 rounded w-full h-36 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">GP11 Shooter USB Gamepad</h3>
       </a>
@@ -518,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </article>
     <!-- 商品卡片 8 -->
     <article class="bg-white rounded shadow hover:shadow-lg transition p-4 flex flex-col">
-      <a href="{{ url_for('product') }}">
+      <a href="{{ url_for('product') }}?name=Quilted Satin Jacket">
         <img src="https://placehold.co/182x176" alt="Quilted Satin Jacket" class="mb-4 rounded w-full h-44 object-cover"/>
         <h3 class="text-lg font-semibold mb-2">Quilted Satin Jacket</h3>
       </a>
@@ -711,6 +693,83 @@ window.addEventListener('DOMContentLoaded', function() {
           }, 3000); // Hide after 3 seconds
         }
       });
+
+      // 願望清單功能
+      document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        const productId = btn.getAttribute('data-product-id');
+        const icon = btn.querySelector('.wishlist-icon');
+        
+        // 檢查產品是否已在願望清單中
+        fetch(`/api/wishlist/check/${productId}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.in_wishlist) {
+              icon.src = "{{ url_for('static', filename='images/red_heart_96.png') }}";
+              btn.title = "從願望清單移除";
+            }
+          })
+          .catch(error => {
+            console.error('Error checking wishlist status:', error);
+          });
+        
+        // 愛心按鈕點擊事件
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const isInWishlist = icon.src.includes('red_heart_96.png');
+          
+          if (isInWishlist) {
+            // 從願望清單移除
+            fetch('/api/wishlist/remove', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                icon.src = "{{ url_for('static', filename='images/empty_heart_96.png') }}";
+                btn.title = "加入願望清單";
+                alert('已從願望清單移除');
+              } else {
+                alert(data.message || '移除失敗');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('移除失敗，請稍後再試');
+            });
+          } else {
+            // 加入願望清單
+            fetch('/api/wishlist/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                icon.src = "{{ url_for('static', filename='images/red_heart.png') }}";
+                btn.title = "從願望清單移除";
+                alert('已加入願望清單！');
+              } else {
+                alert(data.message || '加入失敗');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('加入失敗，請稍後再試');
+            });
+          }
+        });
+      });
+
+
     });
   </script>
 </body>

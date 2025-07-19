@@ -28,7 +28,7 @@
             </button>
             <ul id="accountDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg py-2 hidden z-20">
               <li><a href="{{ url_for('account') }}" class="block px-4 py-2 hover:bg-gray-100">個人資料</a></li>
-              <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
+              <li><a href="{{ url_for('orders') }}" class="block px-4 py-2 hover:bg-gray-100">訂單查詢</a></li>
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>
@@ -59,10 +59,16 @@
   </header>
   <main class="container mx-auto px-4 py-12 min-h-[60vh]">
     <h1 class="text-3xl font-bold mb-8">我的購物車</h1>
+    
+    {% if cart_items %}
     <div class="overflow-x-auto">
       <table class="min-w-full bg-white rounded-lg shadow">
         <thead>
           <tr class="bg-gray-100 text-gray-700">
+            <th class="py-3 px-4 text-left">
+              <input type="checkbox" id="select-all" class="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+              <label for="select-all" class="ml-2 text-sm font-medium">全選</label>
+            </th>
             <th class="py-3 px-4 text-left">商品</th>
             <th class="py-3 px-4 text-left">價格</th>
             <th class="py-3 px-4 text-left">數量</th>
@@ -71,61 +77,85 @@
           </tr>
         </thead>
         <tbody>
-          <!-- 範例商品 1 -->
-          <tr class="border-b">
+          {% for item in cart_items %}
+          <tr class="border-b" data-item-id="{{ item.id }}">
+            <td class="py-4 px-4">
+              <input type="checkbox" class="item-checkbox w-4 h-4 text-red-500 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2" 
+                     data-item-id="{{ item.id }}" data-price="{{ item.item_price }}" data-quantity="{{ item.quantity }}">
+            </td>
             <td class="py-4 px-4 flex items-center gap-4">
-              <img src="https://placehold.co/80x60" alt="商品1" class="w-20 h-16 rounded"/>
-              <span class="font-medium">HAVIT HV-G92 Gamepad</span>
+              <img src="{{ item.product.image_url or 'https://placehold.co/80x60' }}" alt="{{ item.product.name }}" class="w-20 h-16 rounded object-cover"/>
+              <div>
+                <span class="font-medium">{{ item.product.name }}</span>
+                {% if item.variant %}
+                <div class="text-sm text-gray-500">
+                  {% if item.variant.color %}顏色: {{ item.variant.color }}{% endif %}
+                  {% if item.variant.size %}尺寸: {{ item.variant.size }}{% endif %}
+                </div>
+                {% endif %}
+              </div>
             </td>
-            <td class="py-4 px-4 text-red-500 font-bold">$120</td>
+            <td class="py-4 px-4 text-red-500 font-bold">${{ "%.2f"|format(item.item_price) }}</td>
             <td class="py-4 px-4">
-              <input type="number" value="1" min="1" class="w-16 border rounded px-2 py-1 text-center" />
+              <input type="number" value="{{ item.quantity }}" min="1" 
+                     class="w-16 border rounded px-2 py-1 text-center quantity-input" 
+                     data-item-id="{{ item.id }}" 
+                     data-max-stock="{% if item.variant %}{{ item.variant.stock_quantity }}{% else %}{{ item.product.variants|sum(attribute='stock_quantity') }}{% endif %}" />
+              <div class="text-xs text-gray-500 mt-1">
+                庫存: {% if item.variant %}{{ item.variant.stock_quantity }}{% else %}{{ item.product.variants|sum(attribute='stock_quantity') }}{% endif %}
+              </div>
             </td>
-            <td class="py-4 px-4">$120</td>
+            <td class="py-4 px-4 font-bold">${{ "%.2f"|format(item.total_price) }}</td>
             <td class="py-4 px-4">
-              <button class="text-red-500 hover:underline">移除</button>
+              <button class="text-red-500 hover:underline remove-item" data-item-id="{{ item.id }}">移除</button>
             </td>
           </tr>
-          <!-- 範例商品 2 -->
-          <tr class="border-b">
-            <td class="py-4 px-4 flex items-center gap-4">
-              <img src="https://placehold.co/80x60" alt="商品2" class="w-20 h-16 rounded"/>
-              <span class="font-medium">AK-900 Wired Keyboard</span>
-            </td>
-            <td class="py-4 px-4 text-red-500 font-bold">$960</td>
-            <td class="py-4 px-4">
-              <input type="number" value="2" min="1" class="w-16 border rounded px-2 py-1 text-center" />
-            </td>
-            <td class="py-4 px-4">$1920</td>
-            <td class="py-4 px-4">
-              <button class="text-red-500 hover:underline">移除</button>
-            </td>
-          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
     <!-- 總計與操作 -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mt-8 gap-8">
       <div class="flex gap-4">
-        <input type="text" placeholder="Coupon Code" class="border rounded px-4 py-2" />
-        <button class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition">套用優惠券</button>
+        <button id="clear-cart" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+          清空購物車
+        </button>
+        <a href="{{ url_for('home') }}" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition">
+          繼續購物
+        </a>
       </div>
+      
       <div class="bg-gray-50 rounded-lg p-6 shadow min-w-[300px]">
         <div class="flex justify-between mb-2">
+          <span class="font-medium">已選商品：</span>
+          <span id="selected-count">0 件</span>
+        </div>
+        <div class="flex justify-between mb-2">
           <span class="font-medium">小計：</span>
-          <span>$2040</span>
+          <span id="selected-subtotal">$0.00</span>
         </div>
         <div class="flex justify-between mb-2">
           <span class="font-medium">運費：</span>
-          <span>Free</span>
+          <span id="selected-shipping">Free</span>
         </div>
         <div class="flex justify-between mb-4">
           <span class="font-bold text-lg">總計：</span>
-          <span class="text-red-500 font-bold text-lg">$2040</span>
+          <span class="text-red-500 font-bold text-lg" id="selected-total">$0.00</span>
         </div>
-        <button class="w-full bg-red-500 text-white py-3 rounded font-medium text-lg hover:bg-red-600 transition" onclick="location.href='{{ url_for('checkout') }}'">前往結帳</button>
+        <button id="checkout-btn" class="w-full bg-gray-400 text-white py-3 rounded font-medium text-lg cursor-not-allowed" disabled>前往結帳</button>
       </div>
     </div>
+    {% else %}
+    <!-- 空購物車 -->
+    <div class="text-center py-12">
+      <div class="text-6xl mb-4">🛒</div>
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">您的購物車是空的</h2>
+      <p class="text-gray-600 mb-8">快去選購您喜歡的商品吧！</p>
+      <a href="{{ url_for('home') }}" class="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition font-medium">
+        開始購物
+      </a>
+    </div>
+    {% endif %}
   </main>
   <footer class="bg-black text-white py-10 mt-12">
     <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -177,21 +207,217 @@
   </footer>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // 訂閱功能
       const subscribeForm = document.getElementById('subscribeForm');
       const subscribeEmail = document.getElementById('subscribeEmail');
       const subscribeSuccess = document.getElementById('subscribeSuccess');
 
-      subscribeForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const email = subscribeEmail.value;
-        if (email) {
-          subscribeSuccess.classList.remove('hidden');
-          subscribeEmail.value = ''; // Clear input after successful submission
-          setTimeout(() => {
-            subscribeSuccess.classList.add('hidden');
-          }, 3000); // Hide after 3 seconds
+      if (subscribeForm) {
+        subscribeForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const email = subscribeEmail.value;
+          if (email) {
+            subscribeSuccess.classList.remove('hidden');
+            subscribeEmail.value = ''; // Clear input after successful submission
+            setTimeout(() => {
+              subscribeSuccess.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+          }
+        });
+      }
+
+      // 購物車功能
+      const quantityInputs = document.querySelectorAll('.quantity-input');
+      const removeButtons = document.querySelectorAll('.remove-item');
+      const clearCartButton = document.getElementById('clear-cart');
+      const selectAllCheckbox = document.getElementById('select-all');
+      const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+      const checkoutBtn = document.getElementById('checkout-btn');
+      
+      // 初始化選中狀態
+      let selectedItems = new Set();
+      
+      // 更新選中商品的總計
+      function updateSelectedTotal() {
+        let subtotal = 0;
+        let itemCount = 0;
+        
+        itemCheckboxes.forEach(checkbox => {
+          if (checkbox.checked) {
+            const price = parseFloat(checkbox.dataset.price);
+            const quantity = parseInt(checkbox.dataset.quantity);
+            subtotal += price * quantity;
+            itemCount += quantity;
+          }
+        });
+        
+        // 更新顯示
+        document.getElementById('selected-count').textContent = `${itemCount} 件`;
+        document.getElementById('selected-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+        
+        // 計算運費（滿140免運費）
+        const shipping = subtotal >= 140 ? 0 : 30;
+        const total = subtotal + shipping;
+        
+        document.getElementById('selected-shipping').textContent = shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`;
+        document.getElementById('selected-total').textContent = `$${total.toFixed(2)}`;
+        
+        // 更新結帳按鈕狀態
+        if (itemCount > 0) {
+          checkoutBtn.disabled = false;
+          checkoutBtn.className = 'w-full bg-red-500 text-white py-3 rounded font-medium text-lg hover:bg-red-600 transition';
+        } else {
+          checkoutBtn.disabled = true;
+          checkoutBtn.className = 'w-full bg-gray-400 text-white py-3 rounded font-medium text-lg cursor-not-allowed';
         }
+      }
+      
+      // 全選/取消全選
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+          itemCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+          });
+          updateSelectedTotal();
+        });
+      }
+      
+      // 單個商品勾選
+      itemCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          // 更新全選狀態
+          const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+          const anyChecked = Array.from(itemCheckboxes).some(cb => cb.checked);
+          
+          if (selectAllCheckbox) {
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = anyChecked && !allChecked;
+          }
+          
+          updateSelectedTotal();
+        });
       });
+      
+      // 結帳按鈕點擊事件
+      if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+          const selectedItemIds = Array.from(itemCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.dataset.itemId);
+          
+          if (selectedItemIds.length === 0) {
+            alert('請選擇要結帳的商品');
+            return;
+          }
+          
+          // 將選中的商品ID存儲到sessionStorage，供結帳頁面使用
+          sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedItemIds));
+          
+          // 跳轉到結帳頁面
+          window.location.href = "{{ url_for('checkout') }}";
+        });
+      }
+
+      // 更新數量
+      quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          const itemId = this.dataset.itemId;
+          const quantity = parseInt(this.value);
+          const maxStock = parseInt(this.dataset.maxStock);
+          
+          // 檢查庫存限制
+          if (quantity > maxStock) {
+            alert(`庫存不足！當前庫存: ${maxStock}，您選擇的數量: ${quantity}`);
+            this.value = maxStock;
+            return;
+          }
+          
+          if (quantity < 1) {
+            this.value = 1;
+            return;
+          }
+          
+          fetch('/cart/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `item_id=${itemId}&quantity=${quantity}`
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // 重新載入頁面以更新總計
+              location.reload();
+            } else {
+              alert('更新失敗：' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('更新失敗，請稍後再試');
+          });
+        });
+      });
+
+      // 移除項目
+      removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const itemId = this.dataset.itemId;
+          
+          if (confirm('確定要移除這個商品嗎？')) {
+            fetch('/cart/remove', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `item_id=${itemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // 移除該行
+                const row = this.closest('tr');
+                row.remove();
+                // 重新載入頁面以更新總計
+                location.reload();
+              } else {
+                alert('移除失敗：' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('移除失敗，請稍後再試');
+            });
+          }
+        });
+      });
+
+      // 清空購物車
+      if (clearCartButton) {
+        clearCartButton.addEventListener('click', function() {
+          if (confirm('確定要清空購物車嗎？此操作無法復原。')) {
+            fetch('/cart/clear', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                location.reload();
+              } else {
+                alert('清空失敗：' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('清空失敗，請稍後再試');
+            });
+          }
+        });
+      }
     });
   </script>
 </body>
