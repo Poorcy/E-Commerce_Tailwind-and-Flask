@@ -758,6 +758,48 @@ def wishlist():
     
     return render_template('Wishlist.html', user=user, wishlist_items=wishlist_items)
 
+# 管理儀表板路由
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'user_id' not in session:
+        flash('請先登入')
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    
+    # 統計數據
+    total_users = User.query.count()
+    total_products = Product.query.count()
+    total_orders = Order.query.count()
+    total_sales = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+    
+    # 最近訂單（最近10筆）
+    recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
+    
+    # 庫存警告（庫存小於5的產品變體）
+    low_stock_variants = ProductVariant.query.filter(ProductVariant.stock_quantity < 5).all()
+    
+    # 本月銷售額
+    from datetime import datetime, timedelta
+    start_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly_sales = db.session.query(db.func.sum(Order.total_amount)).filter(
+        Order.created_at >= start_of_month
+    ).scalar() or 0
+    
+    # 待處理訂單數量
+    pending_orders = Order.query.filter(Order.status == 'pending').count()
+    
+    return render_template('admin_dashboard.html', 
+                         user=user,
+                         total_users=total_users,
+                         total_products=total_products,
+                         total_orders=total_orders,
+                         total_sales=total_sales,
+                         recent_orders=recent_orders,
+                         low_stock_variants=low_stock_variants,
+                         monthly_sales=monthly_sales,
+                         pending_orders=pending_orders)
+
 # 產品管理路由
 @app.route('/admin/products')
 def admin_products():

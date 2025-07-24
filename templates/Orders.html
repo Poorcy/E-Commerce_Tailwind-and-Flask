@@ -32,6 +32,8 @@
               <li><a href="{{ url_for('wishlist') }}" class="block px-4 py-2 hover:bg-gray-100">願望清單</a></li>
               <li><a href="{{ url_for('cart') }}" class="block px-4 py-2 hover:bg-gray-100">購物車</a></li>
               <li><hr class="my-1"></li>
+              <li><a href="{{ url_for('admin_dashboard') }}" class="block px-4 py-2 hover:bg-gray-100 text-blue-600">管理儀表板</a></li>
+              <li><hr class="my-1"></li>
               <li><a href="{{ url_for('logout') }}" class="block px-4 py-2 text-red-500 hover:bg-gray-100">登出</a></li>
             </ul>
           </div>
@@ -58,7 +60,10 @@
     </div>
   </header>
   <main class="container mx-auto px-4 py-12 min-h-[60vh]">
-    <h1 class="text-3xl font-bold mb-8">訂單查詢</h1>
+    <div class="flex items-center gap-4 mb-8">
+      <h1 class="text-3xl font-bold">訂單查詢</h1>
+      <a href="{{ url_for('admin_dashboard') }}" class="text-blue-600 hover:text-blue-800 text-sm">← 返回儀表板</a>
+    </div>
     
     {% if orders %}
     <div class="space-y-6">
