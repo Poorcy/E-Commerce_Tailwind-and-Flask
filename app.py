@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -104,6 +104,54 @@ class CartItem(db.Model):
         if self.variant:
             return self.variant.get_final_price()
         return self.product.price
+
+# 評論資料表
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 星評分
+    title = db.Column(db.String(200), nullable=True)  # 評論標題
+    comment = db.Column(db.Text, nullable=False)  # 評論內容
+    is_verified_purchase = db.Column(db.Boolean, default=False)  # 是否為驗證購買
+    helpful_votes = db.Column(db.Integer, default=0)  # 有用票數
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 關聯
+    user = db.relationship('User', backref='reviews')
+    product = db.relationship('Product', backref='reviews')
+    
+    def __repr__(self):
+        return f'<Review {self.user.username} - {self.product.name} - {self.rating}星>'
+    
+    def get_rating_stars(self):
+        """獲取評分星數的HTML"""
+        stars = ''
+        for i in range(5):
+            if i < self.rating:
+                stars += '<span class="text-amber-400">★</span>'
+            else:
+                stars += '<span class="text-gray-300">★</span>'
+        return stars
+
+# 評論投票記錄資料表
+class ReviewVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    review_id = db.Column(db.Integer, db.ForeignKey('review.id'), nullable=False)
+    is_helpful = db.Column(db.Boolean, default=True)  # True表示有用，False表示無用
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 關聯
+    user = db.relationship('User', backref='review_votes')
+    review = db.relationship('Review', backref='votes')
+    
+    # 複合唯一索引，確保每個用戶對每個評論只能投票一次
+    __table_args__ = (db.UniqueConstraint('user_id', 'review_id', name='unique_user_review_vote'),)
+    
+    def __repr__(self):
+        return f'<ReviewVote {self.user.username} - Review {self.review_id} - {self.is_helpful}>'
 
 # 願望清單項目資料表
 class WishlistItem(db.Model):
@@ -1079,6 +1127,228 @@ def get_selected_cart_items():
         
     except Exception as e:
         return {'success': False, 'message': '獲取商品信息失敗'}, 500
+
+# 評論相關API
+@app.route('/api/reviews/<int:product_id>', methods=['GET'])
+def get_product_reviews(product_id):
+    """獲取產品的所有評論"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # 獲取評論，按時間倒序排列
+        reviews = Review.query.filter_by(product_id=product_id)\
+                             .order_by(Review.created_at.desc())\
+                             .paginate(page=page, per_page=per_page, error_out=False)
+        
+        reviews_data = []
+        for review in reviews.items:
+            # 檢查是否為驗證購買
+            is_verified = False
+            if 'user_id' in session:
+                # 檢查用戶是否購買過此產品
+                order_items = OrderItem.query.join(Order).filter(
+                    OrderItem.product_id == product_id,
+                    Order.user_id == session['user_id'],
+                    Order.status.in_(['delivered', 'shipped'])
+                ).first()
+                is_verified = order_items is not None
+            
+            # 檢查當前用戶是否已投票
+            user_voted = False
+            if 'user_id' in session:
+                user_vote = ReviewVote.query.filter_by(
+                    user_id=session['user_id'],
+                    review_id=review.id
+                ).first()
+                user_voted = user_vote is not None
+            
+            review_data = {
+                'id': review.id,
+                'user_name': review.user.username,
+                'rating': review.rating,
+                'title': review.title,
+                'comment': review.comment,
+                'is_verified_purchase': review.is_verified_purchase or is_verified,
+                'helpful_votes': review.helpful_votes,
+                'created_at': review.created_at.strftime('%Y-%m-%d %H:%M'),
+                'can_edit': 'user_id' in session and review.user_id == session['user_id'],
+                'user_voted': user_voted
+            }
+            reviews_data.append(review_data)
+        
+        # 計算平均評分
+        avg_rating = db.session.query(db.func.avg(Review.rating))\
+                               .filter_by(product_id=product_id).scalar()
+        total_reviews = Review.query.filter_by(product_id=product_id).count()
+        
+        return jsonify({
+            'success': True,
+            'reviews': reviews_data,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': reviews.total,
+                'pages': reviews.pages,
+                'has_next': reviews.has_next,
+                'has_prev': reviews.has_prev
+            },
+            'summary': {
+                'average_rating': round(avg_rating, 1) if avg_rating else 0,
+                'total_reviews': total_reviews,
+                'rating_stars': int(round(avg_rating, 0)) if avg_rating else 0
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting reviews: {e}")
+        return jsonify({'error': '獲取評論失敗'}), 500
+
+@app.route('/api/reviews/add', methods=['POST'])
+def add_review():
+    """添加評論"""
+    if 'user_id' not in session:
+        return jsonify({'error': '請先登入'}), 401
+    
+    try:
+        data = request.get_json()
+        product_id = data.get('product_id')
+        rating = data.get('rating')
+        title = data.get('title', '')
+        comment = data.get('comment')
+        
+        if not all([product_id, rating, comment]):
+            return jsonify({'error': '請填寫所有必要欄位'}), 400
+        
+        if not (1 <= rating <= 5):
+            return jsonify({'error': '評分必須在1-5之間'}), 400
+        
+        # 檢查是否已經評論過
+        existing_review = Review.query.filter_by(
+            user_id=session['user_id'], 
+            product_id=product_id
+        ).first()
+        
+        if existing_review:
+            return jsonify({'error': '您已經評論過此產品'}), 400
+        
+        # 檢查是否購買過此產品（驗證購買）
+        is_verified = False
+        order_items = OrderItem.query.join(Order).filter(
+            OrderItem.product_id == product_id,
+            Order.user_id == session['user_id'],
+            Order.status.in_(['delivered', 'shipped'])
+        ).first()
+        is_verified = order_items is not None
+        
+        # 創建新評論
+        new_review = Review(
+            user_id=session['user_id'],
+            product_id=product_id,
+            rating=rating,
+            title=title,
+            comment=comment,
+            is_verified_purchase=is_verified
+        )
+        
+        db.session.add(new_review)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '評論添加成功',
+            'review_id': new_review.id
+        })
+        
+    except Exception as e:
+        print(f"Error adding review: {e}")
+        db.session.rollback()
+        return jsonify({'error': '添加評論失敗'}), 500
+
+@app.route('/api/reviews/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    """刪除評論"""
+    if 'user_id' not in session:
+        return jsonify({'error': '請先登入'}), 401
+    
+    try:
+        review = Review.query.get_or_404(review_id)
+        
+        # 檢查權限
+        if review.user_id != session['user_id']:
+            return jsonify({'error': '無權限刪除此評論'}), 403
+        
+        # 先刪除相關的投票記錄
+        votes = ReviewVote.query.filter_by(review_id=review_id).all()
+        for vote in votes:
+            db.session.delete(vote)
+        
+        # 再刪除評論
+        db.session.delete(review)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '評論刪除成功'
+        })
+        
+    except Exception as e:
+        print(f"Error deleting review: {e}")
+        db.session.rollback()
+        return jsonify({'error': '刪除評論失敗'}), 500
+
+@app.route('/api/reviews/<int:review_id>/helpful', methods=['POST'])
+def mark_review_helpful(review_id):
+    """標記評論為有用或收回投票"""
+    if 'user_id' not in session:
+        return jsonify({'error': '請先登入'}), 401
+    
+    try:
+        review = Review.query.get_or_404(review_id)
+        
+        # 檢查用戶是否已經投票過
+        existing_vote = ReviewVote.query.filter_by(
+            user_id=session['user_id'],
+            review_id=review_id
+        ).first()
+        
+        if existing_vote:
+            # 如果已經投票過，則收回投票
+            db.session.delete(existing_vote)
+            review.helpful_votes -= 1
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'helpful_votes': review.helpful_votes,
+                'message': '已收回投票',
+                'voted': False
+            })
+        else:
+            # 如果沒有投票過，則添加投票
+            vote = ReviewVote(
+                user_id=session['user_id'],
+                review_id=review_id,
+                is_helpful=True
+            )
+            
+            # 更新評論的有用票數
+            review.helpful_votes += 1
+            
+            db.session.add(vote)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'helpful_votes': review.helpful_votes,
+                'message': '投票成功',
+                'voted': True
+            })
+        
+    except Exception as e:
+        print(f"Error marking review helpful: {e}")
+        db.session.rollback()
+        return jsonify({'error': '操作失敗'}), 500
 
 @app.errorhandler(404)
 def page_not_found(e):

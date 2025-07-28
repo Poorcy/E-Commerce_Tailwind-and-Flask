@@ -96,15 +96,7 @@
           {% endif %}
         </div>
         <div class="flex items-center gap-4 mb-2">
-          <div class="flex gap-1">
-            <span class="w-5 h-5 bg-amber-400 rounded-sm inline-block"></span>
-            <span class="w-5 h-5 bg-amber-400 rounded-sm inline-block"></span>
-            <span class="w-5 h-5 bg-amber-400 rounded-sm inline-block"></span>
-            <span class="w-5 h-5 bg-amber-400 rounded-sm inline-block"></span>
-            <span class="w-5 h-5 bg-black/20 rounded-sm inline-block"></span>
-          </div>
-          <span class="text-gray-500 text-sm">(150 Reviews)</span>
-          <span id="stock-status" class="text-green-500 text-sm font-medium ml-4">In Stock</span>
+          <span id="stock-status" class="text-green-500 text-sm font-medium">In Stock</span>
         </div>
         <p class="text-2xl font-semibold text-red-500 mb-2">${{ "%.2f"|format(product.price) if product else '192.00' }}</p>
         
@@ -193,6 +185,53 @@
         </div>
       </div>
     </section>
+    
+    <!-- 評論區域 -->
+    <section class="container mx-auto px-4 py-12">
+      <div class="border-t border-gray-200 pt-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold">客戶評論</h2>
+          {% if user %}
+            <button id="addReviewBtn" class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition">
+              寫評論
+            </button>
+          {% endif %}
+        </div>
+        
+        <!-- 評論統計 -->
+        <div class="bg-gray-50 p-6 rounded-lg mb-8">
+          <div class="flex items-center gap-8">
+            <div class="text-center">
+              <div class="text-3xl font-bold text-gray-800" id="avg-rating">0.0</div>
+              <div class="flex justify-center gap-1 mt-2" id="avg-stars">
+                <span class="text-amber-400">★</span>
+                <span class="text-amber-400">★</span>
+                <span class="text-amber-400">★</span>
+                <span class="text-amber-400">★</span>
+                <span class="text-amber-400">★</span>
+              </div>
+              <div class="text-sm text-gray-600 mt-1" id="total-reviews">0 個評論</div>
+            </div>
+            <div class="flex-1">
+              <div class="space-y-2" id="rating-bars">
+                <!-- 評分條會在這裡動態生成 -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 評論列表 -->
+        <div id="reviews-container">
+          <!-- 評論會在這裡動態載入 -->
+        </div>
+        
+        <!-- 分頁 -->
+        <div id="reviews-pagination" class="flex justify-center mt-8">
+          <!-- 分頁按鈕會在這裡動態生成 -->
+        </div>
+      </div>
+    </section>
+    
     <!-- 相關商品區塊 -->
     <section class="container mx-auto px-4 py-12">
       <h2 class="text-2xl font-bold mb-8">相關商品</h2>
@@ -732,6 +771,293 @@
         });
       }
     });
+    
+    // 評論系統功能
+    const productId = {{ product.id if product else 'null' }};
+    let currentPage = 1;
+    
+    // 載入評論
+    function loadReviews(page = 1) {
+      if (!productId) return;
+      
+      fetch(`/api/reviews/${productId}?page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            displayReviews(data.reviews);
+            displayPagination(data.pagination);
+            updateRatingSummary(data.summary);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading reviews:', error);
+        });
+    }
+    
+    // 顯示評論
+    function displayReviews(reviews) {
+      const container = document.getElementById('reviews-container');
+      
+      if (reviews.length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-gray-500">還沒有評論，成為第一個評論者吧！</div>';
+        return;
+      }
+      
+      let html = '';
+      reviews.forEach(review => {
+        const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+        const verifiedBadge = review.is_verified_purchase ? 
+          '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded ml-2">驗證購買</span>' : '';
+        const deleteBtn = review.can_edit ? 
+          `<button onclick="deleteReview(${review.id})" class="text-red-500 hover:text-red-700 text-sm">刪除</button>` : '';
+        
+        // 投票按鈕樣式
+        const voteButtonClass = review.user_voted ? 
+          'text-blue-600 font-medium hover:text-blue-800' : 'hover:text-blue-600';
+        const voteButtonText = review.user_voted ? 
+          `有用 (${review.helpful_votes}) ✓` : `有用 (${review.helpful_votes})`;
+        
+        html += `
+          <div class="border-b border-gray-200 py-6">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-medium">${review.user_name}</span>
+                  ${verifiedBadge}
+                  <span class="text-gray-500 text-sm">${review.created_at}</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="flex text-amber-400">
+                    ${stars.split('').map(star => 
+                      star === '★' ? '<span class="text-amber-400">★</span>' : '<span class="text-gray-300">☆</span>'
+                    ).join('')}
+                  </div>
+                  ${review.title ? `<span class="font-medium">${review.title}</span>` : ''}
+                </div>
+                <p class="text-gray-700 mb-3">${review.comment}</p>
+                <div class="flex items-center gap-4 text-sm text-gray-500">
+                  <button onclick="markHelpful(${review.id})" class="${voteButtonClass}">
+                    ${voteButtonText}
+                  </button>
+                  ${deleteBtn}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+    
+    // 顯示分頁
+    function displayPagination(pagination) {
+      const container = document.getElementById('reviews-pagination');
+      
+      if (pagination.pages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      let html = '<div class="flex gap-2">';
+      
+      if (pagination.has_prev) {
+        html += `<button onclick="loadReviews(${pagination.page - 1})" class="px-3 py-2 border rounded hover:bg-gray-50">上一頁</button>`;
+      }
+      
+      for (let i = 1; i <= pagination.pages; i++) {
+        if (i === pagination.page) {
+          html += `<button class="px-3 py-2 bg-red-500 text-white rounded">${i}</button>`;
+        } else {
+          html += `<button onclick="loadReviews(${i})" class="px-3 py-2 border rounded hover:bg-gray-50">${i}</button>`;
+        }
+      }
+      
+      if (pagination.has_next) {
+        html += `<button onclick="loadReviews(${pagination.page + 1})" class="px-3 py-2 border rounded hover:bg-gray-50">下一頁</button>`;
+      }
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+    // 更新評分摘要
+    function updateRatingSummary(summary) {
+      document.getElementById('avg-rating').textContent = summary.average_rating;
+      document.getElementById('total-reviews').textContent = `${summary.total_reviews} 個評論`;
+    }
+    
+    // 刪除評論
+    function deleteReview(reviewId) {
+      if (!confirm('確定要刪除這條評論嗎？')) return;
+      
+      fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('評論已刪除');
+          loadReviews(currentPage);
+        } else {
+          alert(data.error || '刪除失敗');
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting review:', error);
+        alert('刪除失敗');
+      });
+    }
+    
+    // 標記有用或收回投票
+    function markHelpful(reviewId) {
+      fetch(`/api/reviews/${reviewId}/helpful`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (data.voted) {
+            alert('投票成功！');
+          } else {
+            alert('已收回投票');
+          }
+          loadReviews(currentPage);
+        } else {
+          alert(data.error || '操作失敗');
+        }
+      })
+      .catch(error => {
+        console.error('Error marking helpful:', error);
+        alert('操作失敗，請稍後再試');
+      });
+    }
+    
+    // 添加評論按鈕事件
+    const addReviewBtn = document.getElementById('addReviewBtn');
+    if (addReviewBtn) {
+      addReviewBtn.addEventListener('click', function() {
+        showAddReviewModal();
+      });
+    }
+    
+    // 顯示添加評論模態框
+    function showAddReviewModal() {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">寫評論</h3>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <form id="reviewForm">
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">評分</label>
+              <div class="flex gap-1" id="rating-input">
+                <button type="button" class="text-2xl text-gray-300 hover:text-amber-400" data-rating="1">★</button>
+                <button type="button" class="text-2xl text-gray-300 hover:text-amber-400" data-rating="2">★</button>
+                <button type="button" class="text-2xl text-gray-300 hover:text-amber-400" data-rating="3">★</button>
+                <button type="button" class="text-2xl text-gray-300 hover:text-amber-400" data-rating="4">★</button>
+                <button type="button" class="text-2xl text-gray-300 hover:text-amber-400" data-rating="5">★</button>
+              </div>
+              <input type="hidden" name="rating" id="rating-value" value="0">
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-2">標題 (可選)</label>
+              <input type="text" name="title" class="w-full border rounded px-3 py-2" placeholder="簡短標題">
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium mb-2">評論內容</label>
+              <textarea name="comment" rows="4" class="w-full border rounded px-3 py-2" placeholder="分享您的使用體驗..." required></textarea>
+            </div>
+            
+            <div class="flex gap-3">
+              <button type="submit" class="flex-1 bg-red-500 text-white py-2 rounded hover:bg-red-600">
+                提交評論
+              </button>
+              <button type="button" onclick="this.closest('.fixed').remove()" class="flex-1 border border-gray-300 py-2 rounded hover:bg-gray-50">
+                取消
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // 評分選擇功能
+      const ratingButtons = modal.querySelectorAll('#rating-input button');
+      const ratingValue = modal.querySelector('#rating-value');
+      
+      ratingButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const rating = parseInt(this.dataset.rating);
+          ratingValue.value = rating;
+          
+          ratingButtons.forEach((btn, index) => {
+            if (index < rating) {
+              btn.className = 'text-2xl text-amber-400';
+            } else {
+              btn.className = 'text-2xl text-gray-300 hover:text-amber-400';
+            }
+          });
+        });
+      });
+      
+      // 表單提交
+      const form = modal.querySelector('#reviewForm');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = {
+          product_id: productId,
+          rating: parseInt(formData.get('rating')),
+          title: formData.get('title'),
+          comment: formData.get('comment')
+        };
+        
+        if (data.rating === 0) {
+          alert('請選擇評分');
+          return;
+        }
+        
+        fetch('/api/reviews/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('評論提交成功！');
+            modal.remove();
+            loadReviews(1);
+          } else {
+            alert(data.error || '提交失敗');
+          }
+        })
+        .catch(error => {
+          console.error('Error submitting review:', error);
+          alert('提交失敗');
+        });
+      });
+    }
+    
+    // 頁面載入時載入評論
+    if (productId) {
+      loadReviews();
+    }
   </script>
 </body>
 </html>
